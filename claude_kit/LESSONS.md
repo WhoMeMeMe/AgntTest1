@@ -34,6 +34,15 @@ The compact list of standing rules lives in `known-mistakes.md`. This file is th
 ## Entries
 
 ### 2026-11-11 — 2026-11-rice-cooker — review
+- What happened: Director's notes on v3: (1) "kurang Indonesia" — second time for the voice (first on the stock Fish voices, now on the Fish clone of his own reference); (2) no subtle sound effects. Added a coded SFX stem (`tools/sfx.py`, 21 cues, 12 distinct sounds: whoosh on cuts, pop, swish, ping, boing, bubbling, ticks, hiss, thunk, stretch, click, ding). Export `videos/_previews/2026-11-rice-cooker_2d_v4.mp4`: -13.8 LUFS, true peak -1.4 dBFS, SFX stem peak -13.0 dBFS vs VO peak -3.4 dBFS (9.6 dB under). Voice is unchanged in v4 and still open.
+- Timestamp / shot (if any): whole VO
+- Repeating issue? yes — "kurang Indonesia", first seen on v2 (stock voices)
+- Skill file changed: `known-mistakes.md` KM-006; `skills/script-writer.md` section 7 rule 3
+- Rule added: "Indonesian VO: never build a full video on a new voice. Send a 10-second sample of the engine + voice first and wait for the director's ear; a transcription match is not evidence that it sounds native."
+- What we will do differently next time: Fish Audio s1 has now missed twice on Indonesian naturalness (stock and cloned). Ask which engine produced the director's reference narration and use that engine, or have him record the script. Higgsfield's speech presets are English-named voices with no listed Indonesian option.
+- Credits used this run: 0
+
+### 2026-11-11 — 2026-11-rice-cooker — review
 - What happened: Director said the stock voices were "kurang Indonesia" and supplied his own 2-minute Indonesian narration as a voice reference (`videos/2026-11-rice-cooker/audio/reference/`). Saving a voice model on Fish Audio is refused for this account (limit 0/0), so the first 34 s of the reference is sent inline with each request (`tools/fish_tts.py`). Script rewritten in conversational Indonesian (`vo.txt`, 89 words). Export: `videos/_previews/2026-11-rice-cooker_2d_v3.mp4`, 37.9 s, -13.8 LUFS, true peak -1.4 dBFS; click SFX peak -12.5 dB vs VO peak -3.4 dB (9 dB under). Awaiting his ear on the voice.
 - Timestamp / shot (if any): n/a
 - Repeating issue?: no

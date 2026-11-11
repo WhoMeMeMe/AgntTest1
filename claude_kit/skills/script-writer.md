@@ -87,5 +87,6 @@ Emoji: one at the end of the title, Title Case, same string will be used on YouT
 
 1. Delete any subscribe/follow line that slips in.
 2. If Mas Hanief says it "sounds like a textbook," cut abstract nouns and add a visible action.
-3. (Add the next rule when a note repeats.)
+3. Indonesian VO: never build a full video on a new voice or engine. Send a 10-second sample first and wait for the director's ear (KM-006).
+4. (Add the next rule when a note repeats.)
 

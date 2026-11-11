@@ -90,6 +90,14 @@ function unwarp(d) {
   return lerp(r0, r1, clamp((d - d0) / (d1 - d0)));
 }
 window.SFX_TIMES = [unwarp(0.45), unwarp(27.9)];
+// sound cues on the voice timeline: [kind, start, optional end]
+window.SFX_EVENTS = [
+  ['click', 0.45], ['whoosh', 5.45], ['pop', 6.0], ['swish', 7.15], ['whoosh', 7.9],
+  ['ping', capStart('satu magnet,') + 0.15], ['boing', capStart('sama satu per.') + 0.15], ['whoosh', 10.95],
+  ['bubbles', 5.6, 20.8], ['hiss', 20.5, 25.6], ['tick', 21.9], ['tick', 22.8], ['tick', 23.7], ['tick', 24.6],
+  ['thunk', 25.8], ['stretch', 26.8, 27.85], ['click', 27.9], ['whoosh', 29.5],
+  ['pop', 30.4], ['hiss', 30.6, 33.4], ['ding', 31.5],
+].map(([k, a, b]) => [k, unwarp(a), b === undefined ? null : unwarp(b)]);
 const T_MAGNET = capStart('satu magnet,'), T_SPRING = capStart('sama satu per.');
 
 function captionHTML(t) {
