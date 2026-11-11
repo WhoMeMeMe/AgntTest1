@@ -1,0 +1,245 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; }
+  body { background: linear-gradient(#5FBEFF 0%, #4DC0FF 50%, #A0DEFF 100%); font-family: Inter, sans-serif; }
+  #stage { position: absolute; inset: 0; }
+  #cap { position: absolute; left: 60px; right: 60px; top: 1440px; text-align: center;
+         font-weight: 900; font-size: 82px; line-height: 98px; color: #F7F6F5;
+         -webkit-text-stroke: 12px #2B2628; paint-order: stroke fill; letter-spacing: -1px; }
+  #cap span { display: inline-block; margin: 0 12px; }
+  #gauge { position: absolute; left: 50%; top: 120px; transform: translateX(-50%);
+           background: #2B2628; border-radius: 60px; padding: 18px 54px 26px; text-align: center; }
+  #gauge .num { font-weight: 900; font-size: 92px; line-height: 100px; color: #F7F6F5; }
+  #gauge .bar { width: 420px; height: 16px; border-radius: 8px; background: #5A5356; position: relative; margin-top: 6px; }
+  #gauge .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; }
+  #gauge .tick { position: absolute; left: 50%; top: -8px; bottom: -8px; width: 4px; background: #F7F6F5; }
+</style>
+</head>
+<body>
+<svg id="stage" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
+<div id="gauge"><div class="num"></div><div class="bar"><div class="fill"></div><div class="tick"></div></div></div>
+<div id="cap"></div>
+<script>
+// ---------- look (from claude_kit/skills/style-guide.md) ----------
+const INK = '#2B2628', CREAM = '#F6F0E4', ACCENT = '#F0603A', METAL = '#D5DAE1';
+window.DURATION = 33.6; window.FPS = 30;
+
+// ---------- helpers ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = (k) => k * k * (3 - 2 * k);
+const seg = (t, a, b) => ease(clamp((t - a) / (b - a)));
+const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+// ---------- captions (estimated timing; replace with word timestamps once a VO exists) ----------
+const BEATS = [
+  { a: 0.25, b: 5.35, cards: ['Rice cooker-mu nggak punya timer.', 'Nggak punya otak.', 'Tapi dia tahu persis', 'kapan nasinya matang.'] },
+  { a: 5.6, b: 10.9, cards: ['Banyak yang kira', 'ada sensor pintar di dalamnya.', 'Padahal, cuma ada', 'satu magnet', 'dan satu per.'] },
+  { a: 11.1, b: 18.4, cards: ['Selama masih ada air,', 'panci nggak bisa lebih panas', 'dari seratus derajat.', 'Magnet itu terus menempel,', 'menahan tuas tetap di bawah.'] },
+  { a: 18.6, b: 25.4, cards: ['Begitu airnya habis,', 'suhu langsung naik.', 'Dan di atas seratus derajat,', 'logam itu kehilangan', 'daya tariknya.'] },
+  { a: 29.6, b: 33.3, cards: ['Jadi bunyi itu bukan alarm.', 'Itu tanda airnya', 'sudah habis.'] },
+];
+const CARDS = [];
+for (const bt of BEATS) {
+  const total = bt.cards.reduce((n, c) => n + c.length + 6, 0);
+  let t = bt.a;
+  for (const c of bt.cards) {
+    const d = (bt.b - bt.a) * (c.length + 6) / total;
+    CARDS.push({ text: c, start: t, end: t + d });
+    t += d;
+  }
+}
+CARDS.push({ text: 'Magnet lepas.', start: 25.7, end: 26.65 });
+CARDS.push({ text: 'Per mendorong.', start: 26.7, end: 27.85 });
+CARDS.push({ text: 'Ceklek.', start: 27.9, end: 29.3 });
+const capStart = (text) => CARDS.find((c) => c.text === text).start;
+const T_MAGNET = capStart('satu magnet'), T_SPRING = capStart('dan satu per.');
+
+function captionHTML(t) {
+  const c = CARDS.find((c) => t >= c.start && t < c.end);
+  if (!c) return '';
+  const words = c.text.split(' ');
+  const chars = words.reduce((n, w) => n + w.length, 0);
+  const span = (c.end - c.start) * 0.6;
+  let acc = 0, html = '', line = 0;
+  const wrapAt = c.text.length > 17 ? Math.ceil(words.length / 2) : 99;
+  words.forEach((w, i) => {
+    const ws = c.start + span * acc / chars;
+    acc += w.length;
+    const k = clamp((t - ws) / 0.1);
+    if (i === wrapAt) html += '<br>';
+    html += `<span style="opacity:${k > 0 ? 1 : 0};transform:translateY(${lerp(18, 0, ease(k))}px)">${w}</span>`;
+  });
+  return html;
+}
+
+// ---------- camera ----------
+const CAM = [
+  [0, 600, 950, 1.2], [5.45, 600, 950, 1.38],
+  [5.5, 540, 960, 1.15], [7.9, 540, 960, 1.15], [8.7, 590, 1165, 2.7], [10.95, 600, 1165, 2.9],
+  [11.0, 540, 940, 1.26], [18.5, 540, 940, 1.32], [21.3, 540, 950, 1.34], [23.2, 580, 1150, 2.5], [25.6, 585, 1155, 2.65],
+  [25.65, 640, 1160, 2.2], [27.85, 660, 1165, 2.3],
+  [27.9, 740, 1150, 1.9], [29.5, 740, 1150, 1.96],
+  [29.55, 570, 900, 1.22], [33.6, 570, 900, 1.06],
+];
+function camera(t) {
+  let i = 0;
+  while (i < CAM.length - 2 && t >= CAM[i + 1][0]) i++;
+  const [t0, x0, y0, s0] = CAM[i], [t1, x1, y1, s1] = CAM[i + 1];
+  const k = seg(t, t0, t1);
+  return [lerp(x0, x1, k), lerp(y0, y1, k), lerp(s0, s1, k)];
+}
+
+// ---------- state ----------
+function state(t) {
+  let d; // magnet drop in px: 0 = attached (cooking), 70 = released
+  if (t < 5.5) d = 70 * clamp((t - 0.45) / 0.08);
+  else if (t < 25.8) d = 0;
+  else if (t < 26.8) d = 14 * clamp((t - 25.8) / 0.15);
+  else if (t < 27.9) d = lerp(14, 30, seg(t, 26.8, 27.85));
+  else d = lerp(30, 70, clamp((t - 27.9) / 0.07));
+  const ext = t < 5.5 ? 1 : t < 29.55 ? 1 - seg(t, 5.5, 5.9) : seg(t, 29.55, 30.1);
+  const w = 1 - seg(t, 18.6, 21.2);
+  const temp = t < 21 ? 100 : lerp(100, 105, clamp((t - 21) / 4.5));
+  const flipT = t < 5.5 ? 0.45 : 27.9;
+  return {
+    d, ext, w, temp,
+    m: 1 - seg(t, 23.6, 25.4),
+    glow: seg(t, 21, 24.5) * (1 - seg(t, 28.5, 30)),
+    lid: seg(t, 30.4, 31.4),
+    burst: clamp((t - flipT) / 0.4),
+    shake: t >= flipT && t < flipT + 0.3 ? Math.sin((t - flipT) * 90) * 7 * (1 - (t - flipT) / 0.3) : 0,
+    gauge: seg(t, 11.3, 11.7) * (1 - seg(t, 29.3, 29.55)),
+    chip: seg(t, 6.0, 6.25) * (1 - seg(t, 7.8, 8.05)),
+    chipX: seg(t, 7.15, 7.35),
+    ringM: clamp(1 - Math.abs(t - T_MAGNET - 0.45) / 0.6),
+    ringS: clamp(1 - Math.abs(t - T_SPRING - 0.45) / 0.6),
+  };
+}
+
+// ---------- drawing ----------
+const POT = 'M262,770 L262,1050 Q262,1110 322,1110 L758,1110 Q818,1110 818,1050 L818,770';
+function draw(t) {
+  const s = state(t);
+  const [fx, fy, sc] = camera(t);
+  const cooking = s.d < 35;
+  const innerY = 1161 + s.d, pivY = 1196;
+  const armY = (x) => pivY + (innerY - pivY) * (700 - x) / 160;
+  const knobY = armY(920), sprY = armY(640);
+  let g = '';
+
+  // floor shadow + feet
+  g += `<ellipse cx="540" cy="1296" rx="400" ry="26" fill="#1F6EA8" opacity=".28"/>`;
+  g += `<rect x="260" y="1246" width="90" height="34" rx="10" fill="${INK}"/><rect x="730" y="1246" width="90" height="34" rx="10" fill="${INK}"/>`;
+
+  // interior cutaway
+  g += `<rect x="190" y="712" width="700" height="540" rx="70" fill="#3B3539"/>`;
+  g += `<path d="${POT} Z" fill="#2A2528"/>`;
+  g += `<clipPath id="potClip"><path d="${POT} Z"/></clipPath><g clip-path="url(#potClip)">`;
+  const waterTop = lerp(1110, 880, s.w), riceTop = lerp(1040, 905, 1 - s.w);
+  if (s.w > 0.01) {
+    g += `<rect x="250" y="${waterTop}" width="580" height="260" fill="#8ED6FF" opacity=".9"/>`;
+    for (let i = 0; i < 16; i++) {
+      const ph = (t * (0.7 + rnd(i) * 0.6) + rnd(i + 40)) % 1;
+      const by = lerp(1100, waterTop + 8, ph), bx = 290 + rnd(i + 9) * 500 + Math.sin(t * 5 + i) * 6;
+      if (by > riceTop - 300) g += `<circle cx="${bx}" cy="${by}" r="${5 + rnd(i + 3) * 9}" fill="#fff" opacity="${0.75 * s.w}"/>`;
+    }
+  }
+  g += `<path d="M250,1120 L250,${riceTop + 24} Q395,${riceTop - 22} 540,${riceTop} Q685,${riceTop + 20} 830,${riceTop + 14} L830,1120 Z" fill="#FFFDF5"/>`;
+  for (let i = 0; i < 90; i++) {
+    const gx = 275 + rnd(i) * 530, gy = lerp(riceTop + 34, 1096, rnd(i + 200));
+    g += `<ellipse cx="${gx}" cy="${gy}" rx="9" ry="4.5" fill="#E9E2D0" transform="rotate(${rnd(i + 70) * 180} ${gx} ${gy})"/>`;
+  }
+  if (t > 19.6 && t < 29.6) for (let i = 0; i < 7; i++) {
+    const ph = (t * 0.45 + rnd(i + 5)) % 1;
+    g += `<circle cx="${330 + rnd(i + 2) * 420 + Math.sin(t * 2 + i) * 14}" cy="${lerp(riceTop, 780, ph)}" r="${16 + ph * 22}" fill="#fff" opacity="${0.4 * (1 - ph)}"/>`;
+  }
+  g += `</g>`;
+  g += `<path d="${POT}" fill="none" stroke="${METAL}" stroke-width="14" stroke-linecap="round"/>`;
+  g += `<path d="M322,1110 L758,1110" stroke="#FF4A2A" stroke-width="14" stroke-linecap="round" opacity="${s.glow}"/>`;
+
+  // heating plate (two halves, gap for the magnet)
+  const heat = cooking ? 0.65 + 0.2 * Math.sin(t * 6) : 0.12;
+  for (const x of [300, 585]) {
+    g += `<rect x="${x}" y="1120" width="195" height="28" rx="8" fill="#5A4B4D"/>`;
+    g += `<rect x="${x}" y="1120" width="195" height="28" rx="8" fill="#FF7A1A" opacity="${heat}"/>`;
+  }
+
+  // lever arm, pivot, spring, magnet
+  g += `<path d="M540,${innerY} L700,${pivY} L920,${knobY}" fill="none" stroke="#B9BEC6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>`;
+  g += `<circle cx="700" cy="${pivY}" r="13" fill="${INK}" stroke="${METAL}" stroke-width="5"/>`;
+  let sp = `M640,1148`;
+  for (let i = 1; i <= 7; i++) sp += ` L${640 + (i === 7 ? 0 : i % 2 ? 17 : -17)},${lerp(1148, sprY - 6, i / 7)}`;
+  g += `<path d="${sp}" fill="none" stroke="#FFD23F" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const my = 1117 + s.d;
+  g += `<ellipse cx="540" cy="1119" rx="${62 + 6 * Math.sin(t * 8)}" ry="17" fill="#FFE14A" opacity="${s.m * (s.d < 5 ? 0.75 : 0)}"/>`;
+  g += `<rect x="505" y="${my}" width="70" height="44" rx="7" fill="#D9DEE5" stroke="${INK}" stroke-width="5"/>`;
+  g += `<path d="M505,${my + 22} L505,${my + 7} Q505,${my} 512,${my} L568,${my} Q575,${my} 575,${my + 7} L575,${my + 22} Z" fill="#E5392E" stroke="${INK}" stroke-width="5"/>`;
+  if (s.ringM > 0) g += `<circle cx="540" cy="${my + 22}" r="${62 + 14 * (1 - s.ringM)}" fill="none" stroke="#F7F6F5" stroke-width="7" opacity="${s.ringM}"/>`;
+  if (s.ringS > 0) g += `<circle cx="640" cy="${(1148 + sprY) / 2}" r="${44 + 14 * (1 - s.ringS)}" fill="none" stroke="#F7F6F5" stroke-width="7" opacity="${s.ringS}"/>`;
+
+  // cooked rice peeking out when the lid opens
+  if (s.lid > 0) {
+    g += `<path d="M250,740 Q380,${740 - 110 * s.lid} 540,${740 - 120 * s.lid} Q700,${740 - 110 * s.lid} 830,740 Z" fill="#FFFDF5" stroke="${INK}" stroke-width="5"/>`;
+    for (let i = 0; i < 6; i++) {
+      const ph = (t * 0.4 + rnd(i + 11)) % 1;
+      g += `<circle cx="${380 + rnd(i + 31) * 320 + Math.sin(t * 2 + i) * 18}" cy="${lerp(640, 330, ph)}" r="${26 + ph * 40}" fill="#fff" opacity="${0.5 * s.lid * (1 - ph)}"/>`;
+    }
+  }
+
+  // exterior skin
+  g += `<g opacity="${s.ext}"><clipPath id="bodyClip"><rect x="190" y="712" width="700" height="540" rx="70"/></clipPath>`;
+  g += `<rect x="190" y="712" width="700" height="540" rx="70" fill="${CREAM}"/>`;
+  g += `<rect x="190" y="1130" width="700" height="130" fill="${ACCENT}" clip-path="url(#bodyClip)"/>`;
+  g += `<rect x="420" y="880" width="240" height="170" rx="34" fill="#E9E0CF" stroke="${INK}" stroke-width="5"/>`;
+  g += `<circle cx="490" cy="965" r="30" fill="${cooking ? '#FF8A1F' : '#8C8377'}" stroke="${INK}" stroke-width="5"/>`;
+  g += `<circle cx="590" cy="965" r="30" fill="${cooking ? '#8C8377' : '#FFD23F'}" stroke="${INK}" stroke-width="5"/></g>`;
+  g += `<rect x="190" y="712" width="700" height="540" rx="70" fill="none" stroke="${INK}" stroke-width="8"/>`;
+
+  // lid
+  g += `<g transform="rotate(${-62 * s.lid} 200 722)"><path d="M190,722 C190,600 330,560 540,560 C750,560 890,600 890,722 Z" fill="${CREAM}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  g += `<rect x="485" y="524" width="110" height="44" rx="16" fill="${INK}"/></g>`;
+
+  // lever knob (outside the body) + click burst
+  g += `<rect x="892" y="${knobY - 20}" width="62" height="40" rx="12" fill="${ACCENT}" stroke="${INK}" stroke-width="6"/>`;
+  if (s.burst > 0 && s.burst < 1) for (let i = 0; i < 9; i++) {
+    const a = -Math.PI / 2 + (i - 4) * 0.42, r0 = 52 + 60 * s.burst, r1 = r0 + 46 * (1 - s.burst);
+    g += `<line x1="${923 + Math.cos(a) * r0}" y1="${knobY + Math.sin(a) * r0}" x2="${923 + Math.cos(a) * r1}" y2="${knobY + Math.sin(a) * r1}" stroke="#F7F6F5" stroke-width="11" stroke-linecap="round" opacity="${1 - s.burst}"/>`;
+  }
+
+  let out = `<g transform="translate(${540 + s.shake},860) scale(${sc}) translate(${-fx},${-fy})">${g}</g>`;
+
+  // "smart sensor" myth chip, screen space
+  if (s.chip > 0) {
+    let c = `<rect x="-130" y="-130" width="260" height="260" rx="34" fill="#2FA36B" stroke="${INK}" stroke-width="10"/><rect x="-62" y="-62" width="124" height="124" rx="16" fill="#1E7A4E"/>`;
+    for (let i = -1; i <= 1; i++) for (const sgn of [-1, 1]) {
+      c += `<rect x="${sgn * 150 - 22}" y="${i * 70 - 12}" width="44" height="24" rx="8" fill="${METAL}" stroke="${INK}" stroke-width="6"/>`;
+      c += `<rect x="${i * 70 - 12}" y="${sgn * 150 - 22}" width="24" height="44" rx="8" fill="${METAL}" stroke="${INK}" stroke-width="6"/>`;
+    }
+    if (s.chipX > 0) {
+      const k = s.chipX * 170;
+      c += `<path d="M-170,-170 L${-170 + 2 * k},${-170 + 2 * k} M170,-170 L${170 - 2 * k},${-170 + 2 * k}" stroke="${INK}" stroke-width="56" stroke-linecap="round"/>`;
+      c += `<path d="M-170,-170 L${-170 + 2 * k},${-170 + 2 * k} M170,-170 L${170 - 2 * k},${-170 + 2 * k}" stroke="#E5392E" stroke-width="36" stroke-linecap="round"/>`;
+    }
+    out += `<g transform="translate(540,960) scale(${s.chip})">${c}</g>`;
+  }
+  document.getElementById('stage').innerHTML = out;
+
+  const gauge = document.getElementById('gauge');
+  gauge.style.opacity = s.gauge;
+  const hot = s.temp > 100.4;
+  gauge.querySelector('.num').textContent = Math.round(s.temp) + '°C';
+  gauge.querySelector('.num').style.color = hot ? '#FF7A4A' : '#F7F6F5';
+  const fill = gauge.querySelector('.fill');
+  fill.style.width = clamp((s.temp - 90) / 20) * 100 + '%';
+  fill.style.background = hot ? '#FF7A4A' : '#8ED6FF';
+  document.getElementById('cap').innerHTML = captionHTML(t);
+}
+window.renderAt = draw;
+draw(0);
+</script>
+</body>
+</html>

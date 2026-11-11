@@ -33,6 +33,15 @@ The compact list of standing rules lives in `known-mistakes.md`. This file is th
 
 ## Entries
 
+### 2026-11-11 — 2026-11-rice-cooker — review
+- What happened: Director asked for a 2D version. Built a code-drawn 2D preview (HTML/SVG rendered frame by frame with `tools/render_html.js`, then FFmpeg): `videos/_previews/2026-11-rice-cooker_2d_v1.mp4`, 1080x1920, 30 fps, 33.6 s, 6 beats. Look follows `skills/style-guide.md` (cyan gradient, caption `#F7F6F5` / `#2B2628`). No VO yet: caption timing is estimated, audio is two click SFX only (peak -8.4 dB). Awaiting director notes.
+- Timestamp / shot (if any): self-review fixed caption words overlapping on entry (scale pop replaced by an 18 px rise) and the temperature readout covering the lid (moved to top 120 px).
+- Repeating issue?: no
+- Skill file changed: none — one-off fixes
+- Rule added: none
+- What we will do differently next time: Deviations to settle with the director — (1) Indonesian VO/captions instead of the kit's English; (2) 2D flat look instead of stylized 3D; (3) a temperature readout is drawn in-picture (code-rendered text, not model-generated, so KM-001 does not strictly apply). If approved, write them into `skills/style-guide.md` and `skills/script-writer.md`.
+- Credits used this run: 0 (no Higgsfield generation)
+
 ### 2026-11-11 — tools-setup — skill-update
 - What happened: Installed word-timing (faster-whisper 1.2.1, `base.en` model) with the director's approval. Added `tools/word_timing.py` and `tools/requirements.txt`. Tested on a synthetic clip: 12 words, timestamps correct.
 - Timestamp / shot (if any): n/a
