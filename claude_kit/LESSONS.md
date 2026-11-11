@@ -33,6 +33,15 @@ The compact list of standing rules lives in `known-mistakes.md`. This file is th
 
 ## Entries
 
+### 2026-11-11 — tools-setup — skill-update
+- What happened: Installed word-timing (faster-whisper 1.2.1, `base.en` model) with the director's approval. Added `tools/word_timing.py` and `tools/requirements.txt`. Tested on a synthetic clip: 12 words, timestamps correct.
+- Timestamp / shot (if any): n/a
+- Repeating issue?: no
+- Skill file changed: none
+- Rule added: none
+- What we will do differently next time: The cloud container is rebuilt per session, so run `pip install -r tools/requirements.txt` at the start of a session that needs VO timing. PyAV 19 breaks faster-whisper 1.2.1 (`metadata_errors` error); keep `av<17`.
+- Credits used this run: 0
+
 ### 2026-11-11 — session-bootstrap — skill-update
 - What happened: Kit installed in this repo (`claude_kit/`, root `CLAUDE.md` imports it; `videos/` and `tools/` created; analysis PDF stored in `docs/`). Tools found: ffmpeg 6.1.1, Python 3.13, Node 22, Higgsfield connector (plan max, 3,197.55 credits at check time). Whisper is NOT installed (needs approval to install). No footage generated.
 - Timestamp / shot (if any): n/a
