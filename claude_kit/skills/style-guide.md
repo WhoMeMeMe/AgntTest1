@@ -109,7 +109,9 @@ do not change without updating this block and LESSONS.md
 
 ## 7. Audio (picture style's companion)
 
-- Calm male VO is the lead. Music stays low, under the voice.
+- VO is the lead: ElevenLabs "Liam" (`TX3LPaxmHKxFdv7VOQHJ`), `eleven_v3`, Indonesian — locked by the director 2026-11-11. Do not change voice or engine without a 10-second sample approved first (KM-006). Music stays low, under the voice.
+- VO processing: cap pauses at 0.28 s, tempo at most 1.08x, compressor 3:1 at -22 dB, then loudness-normalize the mix.
+- Subtle SFX on every cut and key action (`tools/sfx.py`), each kind its own sound; SFX stem peak at least 3 dB under the VO peak (measured 10 dB under on the rice cooker Short).
 - SFX should be specific (whoosh on the dive, material sounds) and **not** all the same loud hit. Tensaikun: AI SFX often come out too loud and too similar.
 - **[ours]** Target integrated loudness near **-14 LUFS**; keep true peak out of the red (do not sit at 0 dBFS). If you can measure, measure.
 

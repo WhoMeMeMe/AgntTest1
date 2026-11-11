@@ -99,7 +99,7 @@ His pipeline, which we follow in this order:
 
 These are production targets from `/workspace/zacd/final/DNA_ZacD_FINAL.md`, not Tensaikun's look:
 
-- One idea per video. English VO, calm male, **75–95 words**, about **150–160 wpm**, **28–35 seconds** (hard cap 45s).
+- One idea per video. **Indonesian** VO (director's decision 2026-11-11; supersedes the English rule elsewhere in this file — details in `skills/script-writer.md`), calm male, **75–95 words**, about **150–160 wpm**, **28–35 seconds** (hard cap 45s).
 - Hook in 0–3s. Arc: hook → myth/setup → dive into the mechanism → twist → visual payoff.
 - **No subscribe CTA.** A single safety warning (`you actually shouldn't` / on-screen `DO NOT ATTEMPT`) is allowed when the topic is dangerous.
 - 9:16. About **10–14 shots**, cut every **2–3 seconds**.

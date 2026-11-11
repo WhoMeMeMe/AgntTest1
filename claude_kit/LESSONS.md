@@ -33,6 +33,15 @@ The compact list of standing rules lives in `known-mistakes.md`. This file is th
 
 ## Entries
 
+### 2026-11-11 — 2026-11-rice-cooker — skill-update
+- What happened: Director approved the 15 s ElevenLabs sample "premade_liam" ("lumayan, lock aja") — voice locked. Full VO generated (`audio/vo_liam_v1.mp3`, 560 characters), tightened (`audio/vo_liam_v1_tight.wav`), picture re-timed, SFX rebuilt. Export `videos/_previews/2026-11-rice-cooker_2d_v5.mp4`: 40.0 s, -14.1 LUFS, true peak -1.4 dBFS, SFX stem peak -13.0 dBFS vs processed VO peak -3.1 dBFS.
+- Timestamp / shot (if any): whole VO — raw read was 46.4 s for 89 words
+- Repeating issue?: no (length first seen on the Fish clone, different cause)
+- Skill file changed: `skills/script-writer.md` section 1 (Language, Narrator) and section 7 rules 4; `skills/style-guide.md` section 7; `CLAUDE.md` section 5.2 first bullet
+- Rule added: "For a 28–35 s Short write 65–75 Indonesian words" and the locked voice/engine + VO processing chain
+- What we will do differently next time: v5 runs 40 s, over the 28–35 s target but under the 45 s cap. To hit the target, trim this script to about 70 words and regenerate rather than speeding the voice further. A single-pass loudnorm left the mix at -16 LUFS until the VO was compressed first.
+- Credits used this run: 0 Higgsfield; ElevenLabs 560 characters
+
 ### 2026-11-11 — 2026-11-rice-cooker — review
 - What happened: Director asked to move the VO to ElevenLabs. Connected through the environment credential for `api.elevenlabs.io` (header `xi-api-key`). Account is on the free tier (about 6,200 of 10,000 characters left before this run). Library voices, including the three Indonesian ones already saved on the account (Jin, Andra, Mahaputra), return 402 "Free users cannot use library voices via the API". Only the built-in English voices work through the API; two 15 s Indonesian samples made with them (Liam, Will, model `eleven_v3`, `language_code: id`) in `videos/2026-11-rice-cooker/audio/samples_elevenlabs/`. Listed native Indonesian (locale id-ID) male library voices with preview links for the director to pick from.
 - Timestamp / shot (if any): n/a

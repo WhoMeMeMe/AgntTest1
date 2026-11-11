@@ -10,10 +10,10 @@ This skill sets **our** script DNA (ZacD-formula Shorts). Do not copy Tensaikun'
 
 | Parameter | Value |
 |---|---|
-| Language | English |
+| Language | **Indonesian, conversational register** ("gak", "tau", "mateng", "udah"), locked by the director 2026-11-11. Spell "gak", never "nggak" (TTS misreads it). Prompts and file notes stay in English |
 | Length | **75–95 words** (DNA practical target; researched top-video median was ~80) |
 | Duration | ~28–35 s at **150–160 wpm** (estimate: words ÷ 2.5 ≈ seconds at 150 wpm) |
-| Narrator | One calm male voice, third person or "you" |
+| Narrator | One male voice, third person or "you". Locked voice: ElevenLabs built-in "Liam" (`TX3LPaxmHKxFdv7VOQHJ`), model `eleven_v3`, `language_code: id` — see `tools/elevenlabs_tts.py` |
 | Ideas | **One** mechanism or question per video |
 | CTA | **None.** No "subscribe," "follow," "like," "link in bio" |
 | Safety | Optional one warning if the topic is dangerous |
@@ -88,5 +88,6 @@ Emoji: one at the end of the title, Title Case, same string will be used on YouT
 1. Delete any subscribe/follow line that slips in.
 2. If Mas Hanief says it "sounds like a textbook," cut abstract nouns and add a visible action.
 3. Indonesian VO: never build a full video on a new voice or engine. Send a 10-second sample first and wait for the director's ear (KM-006).
-4. (Add the next rule when a note repeats.)
+4. The locked voice reads about 135–145 wpm with long pauses: 89 words came out at 46 s raw, 39 s after capping pauses at 0.28 s and a 1.08x tempo. For a 28–35 s Short write **65–75 Indonesian words**, on one line per sentence group without blank lines.
+5. (Add the next rule when a note repeats.)
 
