@@ -34,6 +34,15 @@ The compact list of standing rules lives in `known-mistakes.md`. This file is th
 ## Entries
 
 ### 2026-11-11 — 2026-11-rice-cooker — review
+- What happened: Voice added with Fish Audio (director's choice). Two stock narrator voices generated from the approved script: "Toren" (28.1 s, used) and "Slax" (34.5 s, kept as an alternative) in `videos/2026-11-rice-cooker/audio/`. Word timing via `tools/align_vo.py`; captions and animation now follow the voice. Export: `videos/_previews/2026-11-rice-cooker_2d_v2.mp4`, 28.9 s, -13.7 LUFS, true peak -1.4 dBFS. Awaiting director notes.
+- Timestamp / shot (if any): n/a
+- Repeating issue?: no
+- Skill file changed: none
+- Rule added: none
+- What we will do differently next time: (1) Do not pass the script as a Whisper prompt — it made the model skip most of the audio (14/83 words); without it 70/83 matched and the rest interpolate. (2) Use the multilingual `small` model with `language=id`; `base.en` is English-only. (3) Skip Fish Audio voices cloned from real public figures; pick stock narrator voices. (4) Fish Audio access goes through the environment's saved credential for `api.fish.audio`; never store a key in the repo. (5) "Toren" runs ~178 wpm on this script, faster than the kit's 150–160 target — director to judge.
+- Credits used this run: 0 Higgsfield; 2 Fish Audio TTS generations (~500 characters each)
+
+### 2026-11-11 — 2026-11-rice-cooker — review
 - What happened: Director asked for a 2D version. Built a code-drawn 2D preview (HTML/SVG rendered frame by frame with `tools/render_html.js`, then FFmpeg): `videos/_previews/2026-11-rice-cooker_2d_v1.mp4`, 1080x1920, 30 fps, 33.6 s, 6 beats. Look follows `skills/style-guide.md` (cyan gradient, caption `#F7F6F5` / `#2B2628`). No VO yet: caption timing is estimated, audio is two click SFX only (peak -8.4 dB). Awaiting director notes.
 - Timestamp / shot (if any): self-review fixed caption words overlapping on entry (scale pop replaced by an 18 px rise) and the temperature readout covering the lid (moved to top 120 px).
 - Repeating issue?: no

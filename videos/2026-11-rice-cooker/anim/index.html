@@ -22,10 +22,11 @@
 <svg id="stage" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
 <div id="gauge"><div class="num"></div><div class="bar"><div class="fill"></div><div class="tick"></div></div></div>
 <div id="cap"></div>
+<script src="timing.js"></script>
 <script>
 // ---------- look (from claude_kit/skills/style-guide.md) ----------
 const INK = '#2B2628', CREAM = '#F6F0E4', ACCENT = '#F0603A', METAL = '#D5DAE1';
-window.DURATION = 33.6; window.FPS = 30;
+window.FPS = 30;
 
 // ---------- helpers ----------
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -34,7 +35,7 @@ const ease = (k) => k * k * (3 - 2 * k);
 const seg = (t, a, b) => ease(clamp((t - a) / (b - a)));
 const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
 
-// ---------- captions (estimated timing; replace with word timestamps once a VO exists) ----------
+// ---------- design timeline: the timing the animation was drawn against ----------
 const BEATS = [
   { a: 0.25, b: 5.35, cards: ['Rice cooker-mu nggak punya timer.', 'Nggak punya otak.', 'Tapi dia tahu persis', 'kapan nasinya matang.'] },
   { a: 5.6, b: 10.9, cards: ['Banyak yang kira', 'ada sensor pintar di dalamnya.', 'Padahal, cuma ada', 'satu magnet', 'dan satu per.'] },
@@ -55,23 +56,51 @@ for (const bt of BEATS) {
 CARDS.push({ text: 'Magnet lepas.', start: 25.7, end: 26.65 });
 CARDS.push({ text: 'Per mendorong.', start: 26.7, end: 27.85 });
 CARDS.push({ text: 'Ceklek.', start: 27.9, end: 29.3 });
+CARDS.sort((a, b) => a.start - b.start);
 const capStart = (text) => CARDS.find((c) => c.text === text).start;
+
+// ---------- real timeline: caption cards take their timing from the voiceover words ----------
+const REAL = [];
+{
+  let wi = 0;
+  for (const c of CARDS) {
+    const n = c.text.split(' ').length;
+    REAL.push({ text: c.text, words: window.VO_WORDS.slice(wi, wi + n) });
+    wi += n;
+  }
+  if (wi !== window.VO_WORDS.length) throw new Error('caption cards and VO words differ: ' + wi + ' vs ' + window.VO_WORDS.length);
+  REAL.forEach((c, i) => {
+    c.start = Math.max(0, c.words[0].start - 0.04);
+    c.end = i + 1 < REAL.length ? Math.max(0, REAL[i + 1].words[0].start - 0.04) : window.VO_END + 0.5;
+  });
+}
+window.DURATION = Math.ceil((window.VO_END + 1.0) * 30) / 30;
+// piecewise-linear map from real (voice) time to design time, anchored on every card start
+const ANCH = [[0, 0], ...REAL.map((c, i) => [c.start, CARDS[i].start]), [window.DURATION, 33.6]].filter((a, i, arr) => i === 0 || a[0] > arr[i - 1][0]);
+function warp(t) {
+  let i = 0;
+  while (i < ANCH.length - 2 && t >= ANCH[i + 1][0]) i++;
+  const [r0, d0] = ANCH[i], [r1, d1] = ANCH[i + 1];
+  return lerp(d0, d1, clamp((t - r0) / (r1 - r0)));
+}
+function unwarp(d) {
+  let i = 0;
+  while (i < ANCH.length - 2 && d >= ANCH[i + 1][1]) i++;
+  const [r0, d0] = ANCH[i], [r1, d1] = ANCH[i + 1];
+  return lerp(r0, r1, clamp((d - d0) / (d1 - d0)));
+}
+window.SFX_TIMES = [unwarp(0.45), unwarp(27.9)];
 const T_MAGNET = capStart('satu magnet'), T_SPRING = capStart('dan satu per.');
 
 function captionHTML(t) {
-  const c = CARDS.find((c) => t >= c.start && t < c.end);
+  const c = REAL.find((c) => t >= c.start && t < c.end);
   if (!c) return '';
-  const words = c.text.split(' ');
-  const chars = words.reduce((n, w) => n + w.length, 0);
-  const span = (c.end - c.start) * 0.6;
-  let acc = 0, html = '', line = 0;
-  const wrapAt = c.text.length > 17 ? Math.ceil(words.length / 2) : 99;
-  words.forEach((w, i) => {
-    const ws = c.start + span * acc / chars;
-    acc += w.length;
-    const k = clamp((t - ws) / 0.1);
+  const wrapAt = c.text.length > 17 ? Math.ceil(c.words.length / 2) : 99;
+  let html = '';
+  c.words.forEach((w, i) => {
+    const k = clamp((t - (w.start - 0.04)) / 0.1);
     if (i === wrapAt) html += '<br>';
-    html += `<span style="opacity:${k > 0 ? 1 : 0};transform:translateY(${lerp(18, 0, ease(k))}px)">${w}</span>`;
+    html += `<span style="opacity:${k > 0 ? 1 : 0};transform:translateY(${lerp(18, 0, ease(k))}px)">${w.w}</span>`;
   });
   return html;
 }
@@ -122,7 +151,8 @@ function state(t) {
 
 // ---------- drawing ----------
 const POT = 'M262,770 L262,1050 Q262,1110 322,1110 L758,1110 Q818,1110 818,1050 L818,770';
-function draw(t) {
+function draw(real) {
+  const t = warp(real);
   const s = state(t);
   const [fx, fy, sc] = camera(t);
   const cooking = s.d < 35;
@@ -236,7 +266,7 @@ function draw(t) {
   const fill = gauge.querySelector('.fill');
   fill.style.width = clamp((s.temp - 90) / 20) * 100 + '%';
   fill.style.background = hot ? '#FF7A4A' : '#8ED6FF';
-  document.getElementById('cap').innerHTML = captionHTML(t);
+  document.getElementById('cap').innerHTML = captionHTML(real);
 }
 window.renderAt = draw;
 draw(0);

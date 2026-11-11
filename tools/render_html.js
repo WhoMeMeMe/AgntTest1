@@ -18,6 +18,7 @@ const path = require('path');
     return;
   }
   const { dur, fps } = await page.evaluate(() => ({ dur: window.DURATION, fps: window.FPS }));
+  console.log('SFX_TIMES ' + JSON.stringify(await page.evaluate(() => window.SFX_TIMES || [])));
   const ff = spawn('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps),
     '-c:v', 'mjpeg', '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '16', out],
     { stdio: ['pipe', 'inherit', 'inherit'] });
