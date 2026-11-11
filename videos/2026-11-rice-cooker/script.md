@@ -1,4 +1,4 @@
-# Script — rice cooker (draft 1, awaiting director approval)
+# Script — rice cooker (draft 1; superseded by `vo.txt`, the conversational rewrite used for the v3 voice)
 
 TITLE: Kenapa Rice Cooker Tahu Nasinya Matang? 🍚
 WORD COUNT: 86

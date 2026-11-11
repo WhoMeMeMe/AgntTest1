@@ -34,6 +34,15 @@ The compact list of standing rules lives in `known-mistakes.md`. This file is th
 ## Entries
 
 ### 2026-11-11 — 2026-11-rice-cooker — review
+- What happened: Director said the stock voices were "kurang Indonesia" and supplied his own 2-minute Indonesian narration as a voice reference (`videos/2026-11-rice-cooker/audio/reference/`). Saving a voice model on Fish Audio is refused for this account (limit 0/0), so the first 34 s of the reference is sent inline with each request (`tools/fish_tts.py`). Script rewritten in conversational Indonesian (`vo.txt`, 89 words). Export: `videos/_previews/2026-11-rice-cooker_2d_v3.mp4`, 37.9 s, -13.8 LUFS, true peak -1.4 dBFS; click SFX peak -12.5 dB vs VO peak -3.4 dB (9 dB under). Awaiting his ear on the voice.
+- Timestamp / shot (if any): n/a
+- Repeating issue?: no
+- Skill file changed: none yet — language and script-register rules wait for his go
+- Rule added: none
+- What we will do differently next time: (1) Spell "gak", not "nggak", for TTS — transcription heard "negap" with the long spelling. (2) The cloned voice inherits the slow storytelling pace of the reference: 89 words ran 39 s; `speed 1.15` only brought it to 37 s, over the 28–35 s target. Either trim the script to ~75 words or give a faster reference. (3) Large inline references can fail with a 502; a 128 kbps MP3 reference (~550 KB) works. (4) Audio is checked by measurement and transcription only — the director must listen.
+- Credits used this run: 0 Higgsfield; Fish Audio: 4 short samples + 2 full generations
+
+### 2026-11-11 — 2026-11-rice-cooker — review
 - What happened: Voice added with Fish Audio (director's choice). Two stock narrator voices generated from the approved script: "Toren" (28.1 s, used) and "Slax" (34.5 s, kept as an alternative) in `videos/2026-11-rice-cooker/audio/`. Word timing via `tools/align_vo.py`; captions and animation now follow the voice. Export: `videos/_previews/2026-11-rice-cooker_2d_v2.mp4`, 28.9 s, -13.7 LUFS, true peak -1.4 dBFS. Awaiting director notes.
 - Timestamp / shot (if any): n/a
 - Repeating issue?: no

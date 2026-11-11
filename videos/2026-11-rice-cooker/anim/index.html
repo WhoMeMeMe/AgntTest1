@@ -37,11 +37,11 @@ const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return 
 
 // ---------- design timeline: the timing the animation was drawn against ----------
 const BEATS = [
-  { a: 0.25, b: 5.35, cards: ['Rice cooker-mu nggak punya timer.', 'Nggak punya otak.', 'Tapi dia tahu persis', 'kapan nasinya matang.'] },
-  { a: 5.6, b: 10.9, cards: ['Banyak yang kira', 'ada sensor pintar di dalamnya.', 'Padahal, cuma ada', 'satu magnet', 'dan satu per.'] },
-  { a: 11.1, b: 18.4, cards: ['Selama masih ada air,', 'panci nggak bisa lebih panas', 'dari seratus derajat.', 'Magnet itu terus menempel,', 'menahan tuas tetap di bawah.'] },
-  { a: 18.6, b: 25.4, cards: ['Begitu airnya habis,', 'suhu langsung naik.', 'Dan di atas seratus derajat,', 'logam itu kehilangan', 'daya tariknya.'] },
-  { a: 29.6, b: 33.3, cards: ['Jadi bunyi itu bukan alarm.', 'Itu tanda airnya', 'sudah habis.'] },
+  { a: 0.25, b: 5.35, cards: ['Rice cooker di rumahmu', 'itu gak punya timer.', 'Gak punya otak.', 'Tapi kok dia bisa tau,', 'persis kapan nasinya mateng?'] },
+  { a: 5.6, b: 10.9, cards: ['Banyak yang ngira', 'ada sensor canggih di dalamnya.', 'Padahal, isinya cuma', 'satu magnet,', 'sama satu per.'] },
+  { a: 11.1, b: 18.4, cards: ['Selama masih ada air,', 'panci itu gak bakal', 'lebih panas dari seratus derajat.', 'Jadi magnetnya nempel terus,', 'nahan tuasnya tetap di bawah.'] },
+  { a: 18.6, b: 25.4, cards: ['Begitu airnya habis,', 'suhunya langsung naik.', 'Nah, lewat dari seratus derajat,', 'logam itu kehilangan', 'daya tariknya.'] },
+  { a: 29.6, b: 33.3, cards: ['Jadi bunyi itu bukan alarm.', 'Itu tanda,', 'airnya udah habis.'] },
 ];
 const CARDS = [];
 for (const bt of BEATS) {
@@ -53,8 +53,8 @@ for (const bt of BEATS) {
     t += d;
   }
 }
-CARDS.push({ text: 'Magnet lepas.', start: 25.7, end: 26.65 });
-CARDS.push({ text: 'Per mendorong.', start: 26.7, end: 27.85 });
+CARDS.push({ text: 'Magnetnya lepas.', start: 25.7, end: 26.65 });
+CARDS.push({ text: 'Per-nya mendorong.', start: 26.7, end: 27.85 });
 CARDS.push({ text: 'Ceklek.', start: 27.9, end: 29.3 });
 CARDS.sort((a, b) => a.start - b.start);
 const capStart = (text) => CARDS.find((c) => c.text === text).start;
@@ -90,7 +90,7 @@ function unwarp(d) {
   return lerp(r0, r1, clamp((d - d0) / (d1 - d0)));
 }
 window.SFX_TIMES = [unwarp(0.45), unwarp(27.9)];
-const T_MAGNET = capStart('satu magnet'), T_SPRING = capStart('dan satu per.');
+const T_MAGNET = capStart('satu magnet,'), T_SPRING = capStart('sama satu per.');
 
 function captionHTML(t) {
   const c = REAL.find((c) => t >= c.start && t < c.end);

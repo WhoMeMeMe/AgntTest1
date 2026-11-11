@@ -1,2 +1,4 @@
 faster-whisper==1.2.1
 av<17
+ormsgpack
+httpx
