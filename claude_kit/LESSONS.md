@@ -34,6 +34,15 @@ The compact list of standing rules lives in `known-mistakes.md`. This file is th
 ## Entries
 
 ### 2026-11-11 — 2026-11-rice-cooker — review
+- What happened: Director asked to move the VO to ElevenLabs. Connected through the environment credential for `api.elevenlabs.io` (header `xi-api-key`). Account is on the free tier (about 6,200 of 10,000 characters left before this run). Library voices, including the three Indonesian ones already saved on the account (Jin, Andra, Mahaputra), return 402 "Free users cannot use library voices via the API". Only the built-in English voices work through the API; two 15 s Indonesian samples made with them (Liam, Will, model `eleven_v3`, `language_code: id`) in `videos/2026-11-rice-cooker/audio/samples_elevenlabs/`. Listed native Indonesian (locale id-ID) male library voices with preview links for the director to pick from.
+- Timestamp / shot (if any): n/a
+- Repeating issue?: no
+- Skill file changed: none
+- Rule added: none
+- What we will do differently next time: Native Indonesian ElevenLabs voices need a paid plan for API use, or the director generates the file on the ElevenLabs site and uploads it. List endpoint: `/v1/shared-voices?language=id`, then keep only `locale` starting with `id` (the language filter alone returns mostly foreign voices).
+- Credits used this run: 0 Higgsfield; ElevenLabs about 430 characters
+
+### 2026-11-11 — 2026-11-rice-cooker — review
 - What happened: Director's notes on v3: (1) "kurang Indonesia" — second time for the voice (first on the stock Fish voices, now on the Fish clone of his own reference); (2) no subtle sound effects. Added a coded SFX stem (`tools/sfx.py`, 21 cues, 12 distinct sounds: whoosh on cuts, pop, swish, ping, boing, bubbling, ticks, hiss, thunk, stretch, click, ding). Export `videos/_previews/2026-11-rice-cooker_2d_v4.mp4`: -13.8 LUFS, true peak -1.4 dBFS, SFX stem peak -13.0 dBFS vs VO peak -3.4 dBFS (9.6 dB under). Voice is unchanged in v4 and still open.
 - Timestamp / shot (if any): whole VO
 - Repeating issue? yes — "kurang Indonesia", first seen on v2 (stock voices)
