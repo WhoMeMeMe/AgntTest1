@@ -33,6 +33,15 @@ The compact list of standing rules lives in `known-mistakes.md`. This file is th
 
 ## Entries
 
+### 2026-11-14 — gaya-3-animation — skill-update
+- What happened: Built "Studio Gaya 3" (coloured-outline, stick-limb original character, 5 views, 11 actions, 7 expressions). Studied two reference videos frame by frame (25 fps) and measured walk, jump, talking and floor-sit. Director then asked for livelier motion, so a second motion set using the 12 principles of animation was added behind a switch.
+- Timestamp / shot (if any): n/a
+- Repeating issue?: yes — the director asked three times for motion to be "fixed" before numbers were measured from footage; guessing motion from memory was not accepted.
+- Skill file changed: new Claude Code skill `.claude/skills/prinsip-animasi/SKILL.md` (12 principles as parameters, action recipes, measured reference spec, Gaya 3 build numbers, pre-publish checklist); working source kept in `.claude/skills/prinsip-animasi/reference/studio-gaya3.html`.
+- Rule added: measure motion from the director's footage frame by frame before tuning; build actions pose to pose with anticipation, extreme and settle; screenshot key poses in 3 views before publishing; never copy the reference characters, only the way they move.
+- What we will do differently next time: ask for short clips up front (upload in chat; a folder on the director's PC and large Drive videos are not reachable from a cloud session). Timing feel cannot be judged from stills, so say so and let the director watch.
+- Credits used this run: 0
+
 ### 2026-11-11 — 2026-11-rice-cooker — skill-update
 - What happened: Director approved the 15 s ElevenLabs sample "premade_liam" ("lumayan, lock aja") — voice locked. Full VO generated (`audio/vo_liam_v1.mp3`, 560 characters), tightened (`audio/vo_liam_v1_tight.wav`), picture re-timed, SFX rebuilt. Export `videos/_previews/2026-11-rice-cooker_2d_v5.mp4`: 40.0 s, -14.1 LUFS, true peak -1.4 dBFS, SFX stem peak -13.0 dBFS vs processed VO peak -3.1 dBFS.
 - Timestamp / shot (if any): whole VO — raw read was 46.4 s for 89 words
