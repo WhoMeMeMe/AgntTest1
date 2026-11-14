@@ -49,6 +49,25 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       <div class="sec"><span class="label">Aksi</span><div class="row" id="acts"></div><p class="hint" id="actNote"></p></div>
       <div class="sec"><span class="label">Suasana hati</span><div class="row" id="moods"></div><p class="hint" id="moodNote"></p></div>
       <div class="sec"><span class="label">Ekspresi</span><div class="row" id="exprs"></div><p class="hint">Wajah saja. Dipakai bila suasana hati Netral dan aksinya tidak membawa wajah sendiri.</p></div>
+      <div class="sec"><span class="label">Editor pose</span>
+        <div class="row"><button type="button" id="edToggle" aria-pressed="false">Edit pose ini</button><button type="button" id="edCopy">Salin kode pose</button><button type="button" id="edDel" hidden>Hapus pose ini</button></div>
+        <div id="edBody" hidden>
+          <div class="opts" style="margin-top:10px">
+            <label for="e-part">Bagian</label><select id="e-part"><option value="aL">Lengan kiri layar</option><option value="aR">Lengan kanan layar</option><option value="lL">Kaki kiri layar</option><option value="lR">Kaki kanan layar</option></select>
+            <label for="e-u0">Atas: angkat</label><div class="row"><input type="range" id="e-u0" min="0" max="180" style="flex:1"><span id="e-u0v" class="hint" style="margin:0;min-width:3em"></span></div>
+            <label for="e-u1">Atas: arah</label><div class="row"><input type="range" id="e-u1" min="-180" max="180" style="flex:1"><span id="e-u1v" class="hint" style="margin:0;min-width:3em"></span></div>
+            <label for="e-f0">Bawah: angkat</label><div class="row"><input type="range" id="e-f0" min="0" max="180" style="flex:1"><span id="e-f0v" class="hint" style="margin:0;min-width:3em"></span></div>
+            <label for="e-f1">Bawah: arah</label><div class="row"><input type="range" id="e-f1" min="-180" max="180" style="flex:1"><span id="e-f1v" class="hint" style="margin:0;min-width:3em"></span></div>
+            <label for="e-tilt">Kepala miring</label><div class="row"><input type="range" id="e-tilt" min="-30" max="30" style="flex:1"><span id="e-tiltv" class="hint" style="margin:0;min-width:3em"></span></div>
+            <label for="e-turn">Kepala menoleh</label><div class="row"><input type="range" id="e-turn" min="-90" max="90" style="flex:1"><span id="e-turnv" class="hint" style="margin:0;min-width:3em"></span></div>
+            <label for="e-lean">Badan condong</label><div class="row"><input type="range" id="e-lean" min="-30" max="30" style="flex:1"><span id="e-leanv" class="hint" style="margin:0;min-width:3em"></span></div>
+          </div>
+          <div class="row" style="margin-top:10px"><button type="button" id="edMirror">Samakan sisi sebelahnya</button><button type="button" id="edReset">Pose berdiri</button></div>
+          <div class="row" style="margin-top:10px"><input type="text" id="edName" maxlength="24" placeholder="Nama pose" aria-label="Nama pose" style="flex:1;min-width:120px;font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)"><button type="button" id="edSave" style="background:var(--acc);color:var(--accink);border-color:var(--acc)">Simpan sebagai aksi</button></div>
+        </div>
+        <textarea id="edCode" hidden readonly rows="2" aria-label="Kode pose" style="width:100%;margin-top:8px;font:12px ui-monospace,monospace;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);padding:6px"></textarea>
+        <p class="hint" id="edMsg" aria-live="polite">Hentikan di pose yang mau dibenerin, lalu tekan "Edit pose ini".</p>
+      </div>
       <div class="sec"><span class="label">Karakter</span>
         <div class="opts">
           <label for="o-cast">Tokoh</label><select id="o-cast"></select>
@@ -269,7 +288,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     function line(pts, col) { return '<path d="M' + pts.map(function (q) { return f(q[0]) + ' ' + f(q[1]); }).join('L') + '" fill="none" stroke="' + col + '"' + st + '/>'; }
     var back = '', front = '', legs = '';
     /* kaki: selalu di bawah badan */
-    [['lL', -1], ['lR', 1]].map(function (d) { var ch = chain([d[1] * 18 * k, hipY, 0], pose[d[0]], d[1], legU, legD); ch.side = d[1]; return ch; }).sort(function (a, b) { return a[2][2] - b[2][2]; }).forEach(function (ch) {
+    [['lL', -1], ['lR', 1]].map(function (d) { var ch = chain([d[1] * 18 * k, hipY, 0], pose[d[0]], d[1], legU, legD); ch.side = d[1]; if (o.cap) o.cap[d[0]] = [ch[0], ch[1], ch[2]]; return ch; }).sort(function (a, b) { return a[2][2] - b[2][2]; }).forEach(function (ch) {
       var face = Math.abs(s) > .2 ? (s > 0 ? 1 : -1) : 1, an = ch[2], ft = [an[0] + 9 * k * face, an[1] + 4 * k], legCol = C ? lc : (look.shape === 'kaus' ? cd : sl);
       legs += line([ch[0], ch[1], ch[2]], legCol);
       if (bt && (bt.t === 'celana' || bt.t === 'celemek')) legs += '<path d="M' + f(ch[0][0]) + ' ' + f(ch[0][1]) + 'L' + f(ch[1][0]) + ' ' + f(ch[1][1]) + 'L' + f(ch[2][0]) + ' ' + f(ch[2][1]) + '" fill="none" stroke="' + (bt.t === 'celemek' ? bt.c2 : bc) + '" stroke-width="' + f(8 * k) + '" stroke-linecap="round" stroke-linejoin="round"/>';
@@ -279,7 +298,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     });
     /* lengan */
     [['aL', -1], ['aR', 1]].forEach(function (d) {
-      var ch = chain([d[1] * (tw - 1 * k), bodyTop + 16 * k, 0], pose[d[0]], d[1], armU, armD), h = ch[2], e = ch[1], dx = h[0] - e[0], dy = h[1] - e[1], n = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / n, uy = dy / n, m = '';
+      var ch = chain([d[1] * (tw - 1 * k), bodyTop + 16 * k, 0], pose[d[0]], d[1], armU, armD), h = (o.cap ? (o.cap[d[0]] = [ch[0], ch[1], ch[2]]) : 0, ch[2]), e = ch[1], dx = h[0] - e[0], dy = h[1] - e[1], n = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / n, uy = dy / n, m = '';
       if (n < 3) { ux = 0; uy = 1; }
       m += line([ch[0], ch[1], ch[2]], lc);
       if (C) { var lg = C.top.sleeve === 'panjang', se = lg ? [ch[1][0] + (ch[2][0] - ch[1][0]) * .8, ch[1][1] + (ch[2][1] - ch[1][1]) * .8] : [ch[0][0] + (ch[1][0] - ch[0][0]) * .5, ch[0][1] + (ch[1][1] - ch[0][1]) * .5], sd2 = 'M' + f(ch[0][0]) + ' ' + f(ch[0][1]) + (lg ? 'L' + f(ch[1][0]) + ' ' + f(ch[1][1]) : '') + 'L' + f(se[0]) + ' ' + f(se[1]);
@@ -455,9 +474,32 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     var yaw = 0; VIEWS.forEach(function (v) { if (v[0] === vkey) yaw = v[2]; });
     var bl = t > blinkAt && t < blinkAt + .14; if (t > blinkAt + .14) blinkAt = t + 1.6 + Math.random() * 2.4; if (t < blinkAt - 6) blinkAt = t + 1;
     var TS = ['A', 'A', 'a', 'o', 'A', 'a', '', 'A', 'o', 'a', '', ''], talk = $('talk').checked ? TS[Math.floor(t / .1) % TS.length] : '';
-    $('stage').innerHTML = scene(draw(poseAt(t), yaw, { cx: 200, gy: 408, id: 'm', scale: fitScale(1.62), blink: bl, talk: talk, flip: $('flip').checked, t: t }));
+    if (ED.on) { ED.cap = {}; var ep = JSON.parse(JSON.stringify(ED.pose)); ep.sq = 0; ep.hdy = 0;
+      $('stage').innerHTML = scene(draw(ep, yaw, { cx: 200, gy: 408, id: 'm', scale: fitScale(1.62), blink: bl, talk: '', flip: false, t: t, cap: ED.cap })) + handles();
+    } else $('stage').innerHTML = scene(draw(poseAt(t), yaw, { cx: 200, gy: 408, id: 'm', scale: fitScale(1.62), blink: bl, talk: talk, flip: $('flip').checked, t: t }));
     requestAnimationFrame(frame);
   }
+  /* ---------- editor pose: putar bagian tubuh dengan menyeret titik atau menggeser penggeser ---------- */
+  var ED = { on: false, pose: null, cap: {}, drag: null, part: 'aR' }, PARTS = { aL: 'Lengan kiri layar', aR: 'Lengan kanan layar', lL: 'Kaki kiri layar', lR: 'Kaki kanan layar' }, PKEY = 'g3-pose-buatan';
+  function handles() {
+    if (ED.pose.rot) return '';
+    var m = ''; Object.keys(PARTS).forEach(function (k2) { var cpt = ED.cap[k2]; if (!cpt) return; [1, 2].forEach(function (i) { var sel = ED.part === k2; m += '<circle cx="' + f(cpt[i][0]) + '" cy="' + f(cpt[i][1]) + '" r="' + (i === 2 ? 11 : 8) + '" fill="' + (sel ? '#2456E6' : '#FFFFFF') + '" stroke="#2456E6" stroke-width="3" opacity=".92" style="cursor:grab"/>'; }); });
+    return m;
+  }
+  function svgPt(e) { var st2 = $('stage'), q = new DOMPoint(e.clientX, e.clientY).matrixTransform(st2.getScreenCTM().inverse()); return [q.x, q.y]; }
+  function syncSliders() {
+    if (!ED.pose) return; var a = ED.pose[ED.part];
+    [['e-u0', a[0]], ['e-u1', a[1]], ['e-f0', a[2]], ['e-f1', a[3]], ['e-tilt', ED.pose.tilt], ['e-turn', ED.pose.turn], ['e-lean', ED.pose.lean]].forEach(function (d) { $(d[0]).value = Math.round(d[1]); $(d[0] + 'v').textContent = Math.round(d[1]) + '°'; });
+    $('e-part').value = ED.part;
+  }
+  function setEdit(on) {
+    ED.on = on; $('edBody').hidden = !on; $('edToggle').setAttribute('aria-pressed', String(on)); $('edToggle').textContent = on ? 'Selesai mengedit' : 'Edit pose ini';
+    if (on) { var t = ((paused ? pausedAt : performance.now()) - t0) / 1000, p = poseAt(t); ED.pose = JSON.parse(JSON.stringify(p)); ED.pose.expr = p.expr || expr; ED.pose.air = 0; ED.pose.y = 0; ED.pose.sq = 0; ED.pose.x = 0; if (!paused) $('pause').click(); syncSliders(); $('edMsg').textContent = 'Seret titik biru di siku, tangan, lutut, atau telapak untuk memutar bagian itu. Ganti tampak untuk memutar ke arah depan-belakang.'; }
+  }
+  function loadPoses() { try { var o = JSON.parse(localStorage.getItem(PKEY) || '{}'); Object.keys(o).forEach(function (id) { addPose(id, o[id], true); }); } catch (e) {} }
+  function storePoses(fn) { try { var o = JSON.parse(localStorage.getItem(PKEY) || '{}'); fn(o); localStorage.setItem(PKEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
+  function addPose(id, rec) { ACTS[id] = { n: '★ ' + rec.n, note: 'Pose buatanmu. Tersimpan di browser ini.', custom: 1, f: function () { return P(JSON.parse(JSON.stringify(rec.pose))); } }; }
+  function refreshActs() { seg('acts', ACTS, function () { return act; }, function (k) { act = k; t0 = performance.now(); if (paused) pausedAt = t0; note(); if (ED.on) setEdit(false); $('edDel').hidden = !ACTS[k].custom; }); }
   function thumbs() {
     var box = $('views'); box.textContent = '';
     VIEWS.forEach(function (v) {
@@ -475,7 +517,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     (Array.isArray(list) ? list : Object.keys(list).map(function (k) { return [k, Array.isArray(list[k]) ? list[k][0] : list[k]]; })).forEach(function (c) { var o = document.createElement('option'); o.value = c[0]; o.textContent = c[1]; e.appendChild(o); });
     e.value = look[key]; e.onchange = function () { look[key] = e.value; thumbs(); };
   }
-  seg('acts', ACTS, function () { return act; }, function (k) { act = k; t0 = performance.now(); if (paused) pausedAt = t0; note(); });
+  loadPoses(); refreshActs();
   seg('moods', MOODS, function () { return mood; }, function (k) { mood = k; $('moodNote').textContent = MOODS[k].note; });
   $('moodNote').textContent = MOODS[mood].note;
   seg('exprs', EXPRS, function () { return expr; }, function (k) { expr = k; });
@@ -488,6 +530,29 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
   fill('o-size', SIZES, 'size'); fill('o-skin', SKINS, 'skin'); fill('o-hair', HAIRS, 'hair'); fill('o-hairc', HAIRC, 'hairc'); fill('o-shape', SHAPES, 'shape'); fill('o-cloth', CLOTH, 'cloth'); fill('o-shoe', SHOES, 'shoe');
   $('pause').onclick = function () { paused = !paused; if (paused) pausedAt = performance.now(); else t0 += performance.now() - pausedAt; this.textContent = paused ? 'Putar' : 'Jeda'; this.setAttribute('aria-pressed', String(paused)); };
   window.g3 = function (a, v, t, m, e) { mood = m || 'netral'; if (e) expr = e; act = a; vkey = v; paused = true; t0 = 0; pausedAt = t * 1000; thumbs(); };
+  $('edToggle').onclick = function () { setEdit(!ED.on); };
+  $('e-part').onchange = function () { ED.part = this.value; syncSliders(); };
+  [['e-u0', 0], ['e-u1', 1], ['e-f0', 2], ['e-f1', 3]].forEach(function (d) { $(d[0]).oninput = function () { ED.pose[ED.part][d[1]] = Number(this.value); $(d[0] + 'v').textContent = this.value + '°'; }; });
+  ['tilt', 'turn', 'lean'].forEach(function (k2) { $('e-' + k2).oninput = function () { ED.pose[k2] = Number(this.value); $('e-' + k2 + 'v').textContent = this.value + '°'; }; });
+  $('edMirror').onclick = function () { var o = ED.part[1] === 'L' ? ED.part[0] + 'R' : ED.part[0] + 'L'; ED.pose[o] = ED.pose[ED.part].slice(); $('edMsg').textContent = 'Sisi sebelahnya disamakan.'; };
+  $('edReset').onclick = function () { var r0 = rest(); ['aL', 'aR', 'lL', 'lR', 'tilt', 'turn', 'lean'].forEach(function (k2) { ED.pose[k2] = r0[k2]; }); syncSliders(); $('edMsg').textContent = 'Kembali ke pose berdiri.'; };
+  $('edSave').onclick = function () {
+    var n = $('edName').value.trim(); if (!n) { $('edMsg').textContent = 'Beri nama posenya dulu.'; $('edName').focus(); return; }
+    var id = 'c_' + Date.now().toString(36), rec = { n: n.slice(0, 24), pose: JSON.parse(JSON.stringify(ED.pose)) }, ok = storePoses(function (o) { o[id] = rec; });
+    addPose(id, rec); act = id; setEdit(false); refreshActs(); note(); $('edDel').hidden = false; $('edName').value = '';
+    $('edMsg').textContent = '"' + rec.n + '" disimpan sebagai aksi baru (bertanda bintang).' + (ok ? '' : ' Browser menolak menyimpan, jadi pose ini hilang saat halaman ditutup.');
+  };
+  $('edCopy').onclick = function () { var src = ED.on ? ED.pose : poseAt(((paused ? pausedAt : performance.now()) - t0) / 1000), o = {}; ['aL', 'aR', 'lL', 'lR'].forEach(function (k2) { o[k2] = src[k2].map(function (v) { return Math.round(v); }); }); ['tilt', 'turn', 'lean', 'sit', 'rot'].forEach(function (k2) { if (src[k2]) o[k2] = Math.round(src[k2]); }); o.expr = src.expr || expr;
+    var tx = $('edCode'); tx.hidden = false; tx.value = JSON.stringify(o); tx.focus(); tx.select(); var done = function (m) { $('edMsg').textContent = m; }; if (navigator.clipboard) navigator.clipboard.writeText(tx.value).then(function () { done('Kode pose disalin. Tempel ke chat supaya bisa dijadikan gerakan tetap.'); }, function () { done('Salin teks di kotak ini secara manual.'); }); else done('Salin teks di kotak ini secara manual.'); };
+  $('edDel').onclick = function () { if (!ACTS[act] || !ACTS[act].custom) return; var id = act; storePoses(function (o) { delete o[id]; }); delete ACTS[id]; act = 'diam'; refreshActs(); note(); this.hidden = true; $('edMsg').textContent = 'Pose dihapus.'; };
+  (function () { var stg = $('stage');
+    stg.addEventListener('pointerdown', function (e) { if (!ED.on || ED.pose.rot) return; var q = svgPt(e), best = null, bd = 26; Object.keys(PARTS).forEach(function (k2) { var cpt = ED.cap[k2]; if (!cpt) return; [1, 2].forEach(function (i) { var d = Math.hypot(cpt[i][0] - q[0], cpt[i][1] - q[1]); if (d < bd) { bd = d; best = { k: k2, i: i }; } }); }); if (!best) return; ED.drag = best; ED.part = best.k; syncSliders(); stg.setPointerCapture(e.pointerId); e.preventDefault(); });
+    stg.addEventListener('pointermove', function (e) { if (!ED.drag) return; var q = svgPt(e), cpt = ED.cap[ED.drag.k], b0 = cpt[ED.drag.i - 1], dx = q[0] - b0[0], dy = q[1] - b0[1]; if (Math.hypot(dx, dy) < 4) return;
+      var yaw = 0; VIEWS.forEach(function (v) { if (v[0] === vkey) yaw = v[2]; }); var c = Math.cos(yaw * D2R), s2 = Math.sin(yaw * D2R), sd = ED.drag.k[1] === 'L' ? -1 : 1, rho = Math.atan2(Math.abs(dx), dy) / D2R, eta;
+      if (Math.abs(c) >= Math.abs(s2)) eta = dx * sd >= 0 ? 0 : 180; else eta = dx * s2 >= 0 ? 90 : -90;
+      var a = ED.pose[ED.drag.k], j = (ED.drag.i - 1) * 2; a[j] = rho; a[j + 1] = eta; syncSliders(); });
+    var end = function () { ED.drag = null; }; stg.addEventListener('pointerup', end); stg.addEventListener('pointercancel', end); stg.style.touchAction = 'none'; })();
+  window.g3edit = function () { return ED; };
   window.g3render = function (cst, a2, m2, v2, t) { look.cast = cst; act = a2; mood = m2 || 'netral'; var yaw = 0; VIEWS.forEach(function (v) { if (v[0] === v2) yaw = v[2]; }); var p = poseAt(t); return { pose: p, svg: draw(p, yaw, { cx: 200, gy: 408, id: 'x', scale: fitScale(1.62), t: t }) }; };
   window.g3lists = function () { return { acts: Object.keys(ACTS), moods: Object.keys(MOODS), cast: [''].concat(Object.keys(CAST)), views: VIEWS.map(function (v) { return v[0]; }) }; };
   thumbs(); requestAnimationFrame(frame);
