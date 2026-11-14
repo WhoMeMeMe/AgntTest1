@@ -130,6 +130,23 @@ To add a character: add one `CAST` entry; do not write new drawing code unless t
 needs a part that does not exist yet. Adults use body factor 1.22; children 1.0; the head
 radius stays the same so the head-to-body ratio matches the sheets.
 
+## 6c. Keep it calm, and audit every frame (director feedback 2026-11-14)
+
+The director rejected the first 12-principles pass as "wiggle parah". Principles are a
+seasoning, not the dish. Ceilings that passed review:
+
+- Squash/stretch: at most +/-0.08 on big moments (jump, land, surprise), +/-0.015 while
+  walking, +/-0.03 running. Never above 0.1.
+- Head lag at most 3 px. Head tilt sway at most 1.2 degrees in a walk.
+- Arm swing in a walk at most 12 degrees. No whole-body tremble above 0.6 px.
+- Idle and talking stay still. Mood layers add posture, not constant motion.
+
+Before publishing, run the automated audit (`reference/audit.js`, Playwright): it steps
+every action x mood at 25 fps for 6 s in both modes and every cast x action x view, and
+reports NaN/undefined in the markup, thrown errors, per-frame pose jumps, and geometry
+leaving the stage. Fast moves (run legs, jump launch) are expected in the jump list; a
+value that pops with no fast move behind it is a glitch. Then read the frame sheets by eye.
+
 ## 7. Checklist before calling an animation done
 
 - [ ] Mode chosen (reference or 12 principles) and stated to the director.

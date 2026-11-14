@@ -33,6 +33,15 @@ The compact list of standing rules lives in `known-mistakes.md`. This file is th
 
 ## Entries
 
+### 2026-11-14 — gaya-3-animation — review
+- What happened: Frame-by-frame audit of Studio Gaya 3 (74k frames checked by script, then frame sheets by eye). Found and fixed: characters leaving the stage (jump, surprise, lying, tall adults), head flipping to the back of the head on point/shake in side view, lying poses not working from front/back views, leg pop in the run, abrupt jump launch and sit impact. Director also said the motion wiggled too much.
+- Timestamp / shot (if any): n/a
+- Repeating issue?: yes — second time motion was rejected after being published without a full frame check.
+- Skill file changed: `.claude/skills/prinsip-animasi/SKILL.md` new section 6c (amplitude ceilings + audit step); `reference/audit.js` added.
+- Rule added: cap squash/stretch at 0.08 and head lag at 3 px; run the frame audit before every publish.
+- What we will do differently next time: audit first, publish second; start subtle and let the director ask for more.
+- Credits used this run: 0
+
 ### 2026-11-14 — gaya-3-animation — skill-update
 - What happened: Built "Studio Gaya 3" (coloured-outline, stick-limb original character, 5 views, 11 actions, 7 expressions). Studied two reference videos frame by frame (25 fps) and measured walk, jump, talking and floor-sit. Director then asked for livelier motion, so a second motion set using the 12 principles of animation was added behind a switch.
 - Timestamp / shot (if any): n/a
