@@ -47,7 +47,8 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     </div>
     <div class="panel">
       <div class="sec"><span class="label">Aksi</span><div class="row" id="acts"></div><p class="hint" id="actNote"></p></div>
-      <div class="sec"><span class="label">Ekspresi</span><div class="row" id="exprs"></div><p class="hint">Aksi tertentu membawa ekspresinya sendiri. Pilihan di sini dipakai untuk aksi yang netral.</p></div>
+      <div class="sec"><span class="label">Suasana hati</span><div class="row" id="moods"></div><p class="hint" id="moodNote"></p></div>
+      <div class="sec"><span class="label">Ekspresi</span><div class="row" id="exprs"></div><p class="hint">Wajah saja. Dipakai bila suasana hati Netral dan aksinya tidak membawa wajah sendiri.</p></div>
       <div class="sec"><span class="label">Karakter</span>
         <div class="opts">
           <label for="o-size">Usia</label><select id="o-size"></select>
@@ -78,11 +79,11 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
   var D2R = Math.PI / 180;
 
   /* ---------- pose: sudut [angkat, arah] per ruas. angkat 0 = ke bawah, 90 = mendatar, 180 = ke atas; arah 0 = samping luar, 90 = depan, -90 = belakang ---------- */
-  function rest() { return { y: 0, x: 0, rot: 0, tilt: 0, aL: [68, 0, 68, 0], aR: [68, 0, 68, 0], lL: [0, 0, 0, 0], lR: [0, 0, 0, 0], sit: 0, lean: 0, sq: 0, hdy: 0 }; }
+  function rest() { return { y: 0, x: 0, rot: 0, tilt: 0, aL: [68, 0, 68, 0], aR: [68, 0, 68, 0], lL: [0, 0, 0, 0], lR: [0, 0, 0, 0], sit: 0, lean: 0, sq: 0, hdy: 0, turn: 0 }; }
   function lerp(a, b, u) { return a + (b - a) * u; }
   function ease(u) { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); }
   function mixA(a, b, u) { return [lerp(a[0], b[0], u), lerp(a[1], b[1], u), lerp(a[2], b[2], u), lerp(a[3], b[3], u)]; }
-  function mixP(a, b, u) { var o = {}; ['y', 'x', 'rot', 'tilt', 'sit', 'lean', 'sq', 'hdy'].forEach(function (k) { o[k] = lerp(a[k] || 0, b[k] || 0, u); }); ['aL', 'aR', 'lL', 'lR'].forEach(function (k) { o[k] = mixA(a[k], b[k], u); }); o.expr = u > .5 ? b.expr : a.expr; o.prop = b.prop || a.prop; return o; }
+  function mixP(a, b, u) { var o = {}; ['y', 'x', 'rot', 'tilt', 'sit', 'lean', 'sq', 'hdy', 'turn'].forEach(function (k) { o[k] = lerp(a[k] || 0, b[k] || 0, u); }); ['aL', 'aR', 'lL', 'lR'].forEach(function (k) { o[k] = mixA(a[k], b[k], u); }); o.expr = u > .5 ? b.expr : a.expr; o.prop = b.prop || a.prop; return o; }
   function P(o) { var p = rest(); for (var k in o) p[k] = o[k]; return p; }
   var ACTS = {
     diam: { n: 'Berdiri', note: 'Diam di tempat. Hanya berkedip.', f: function () { return P({}); } },
@@ -100,6 +101,20 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       return mixP(P({}), P({ sit: 2, lean: -12, lL: [86, 78, 86, 78], lR: [86, 102, 86, 102], aL: [60, 0, 60, 0], aR: [60, 0, 60, 0] }), ease(t / .3)); } },
     bangku: { n: 'Duduk di bangku', note: 'Turun ke bangku, paha ke depan, betis menggantung.', f: function (t) {
       return mixP(P({ prop: 'bangku' }), P({ sit: 1, lL: [86, 90, 0, 90], lR: [86, 90, 0, 90], prop: 'bangku' }), ease(t / .4)); } },
+    tunjuk: { n: 'Menunjuk', note: 'Lengan turun sedikit dulu, lalu menunjuk lurus ke samping dan sedikit melewati sasaran sebelum diam. Kepala menoleh ke arah yang ditunjuk.', f: function (t) {
+      return kf(t, [[0, {}], [.12, { aR: [54, 0, 48, 0], turn: -6 }, 'io'], [.28, { aR: [98, 10, 100, 10], turn: 24, tilt: 3 }, 'out'], [.4, { aR: [90, 10, 90, 10], turn: 20, tilt: 2 }, 'io']]); } },
+    tepuk: { n: 'Tepuk tangan', note: 'Dua tangan bertemu di depan dada, cepat menutup dan lebih pelan membuka, badan ikut memantul kecil.', f: function (t) {
+      var u = (t % .36) / .36, cl = u < .3 ? 1 - Math.pow(1 - u / .3, 2) : 1 - ease((u - .3) / .7), a = [58, 62, 104, 118 + 44 * cl];
+      return P({ aL: a, aR: a, y: -3 * cl, sq: .03 * cl, expr: 'senang' }); } },
+    angguk: { n: 'Mengangguk', note: 'Kepala turun cepat lalu naik lebih pelan, dua kali, badan ikut sedikit.', f: function (t) {
+      var u = (t % 1.4) / .35, n = u < 2 ? Math.pow(Math.abs(Math.sin(u * Math.PI)), .7) : 0; return P({ hdy: 9 * n, tilt: 7 * n, y: 1.5 * n, expr: 'senang' }); } },
+    geleng: { n: 'Menggeleng', note: 'Kepala menoleh kiri-kanan, lambat di ujung dan cepat di tengah, lengan ikut berayun sedikit terlambat.', f: function (t) {
+      var w = t * 2 * Math.PI / .6, tr = 30 * Math.sin(w), lg = 5 * Math.sin(w - .8); return P({ turn: tr, aL: [68 + lg, 0, 68 + lg, 0], aR: [68 - lg, 0, 68 - lg, 0] }); } },
+    bahu: { n: 'Tidak tahu', note: 'Bahu dan kedua lengan terangkat membuka, kepala miring, ditahan sebentar lalu turun.', f: function (t) {
+      var up = both({ y: -3, sq: .04, tilt: 7, expr: 'bingung' }, [66, 0, 118, 0]); return kf(t % 2, [[0, { expr: 'bingung' }], [.1, both({ y: 2, sq: -.03, expr: 'bingung' }, [58, 0, 60, 0]), 'io'], [.3, up, 'out'], [1.1, up], [1.4, { expr: 'bingung' }, 'io'], [2, { expr: 'bingung' }]]); } },
+    tidur: { n: 'Tidur', note: 'Berbaring, mata terpejam, badan mengembang dan mengempis pelan mengikuti napas.', f: function (t) {
+      var br = Math.sin(t * 2 * Math.PI / 3.2), lie = both({ rot: -90, y: -4, x: 118, sq: .035 * br, expr: 'tidur' }, [30, 0, 24, 0], [6, 0, 6, 0]);
+      return mixP(P({ expr: 'ngantuk' }), P(lie), ease(t / .7)); } },
     lambai: { n: 'Melambai', note: 'Satu lengan terangkat, lengan bawah bergoyang kiri-kanan.', f: function (t) { var w = 22 * Math.sin(t * 2 * Math.PI / .5); return P({ aR: [120, 0, 150 + w, 0], expr: 'senang' }); } },
     senang: { n: 'Senang', note: 'Lompat-lompat cepat tanpa jeda sambil tertawa, kaki membuka, lengan terentang.', f: function (t) { var u = Math.abs(Math.sin(t * Math.PI / .34)); var sp = 22 * Math.min(1, u * 1.6); return P({ y: -24 * u, aL: [78, 0, 78, 0], aR: [78, 0, 78, 0], lL: [sp, 0, sp, 0], lR: [sp, 0, sp, 0], expr: 'tertawa' }); } },
     tertawa: { n: 'Tertawa terguling', note: 'Jatuh telentang sambil tertawa, kaki dan tangan menendang-nendang.', f: function (t) {
@@ -169,7 +184,43 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       else { var re = (u - .72) / .28; o.sq = -.14 * (1 - ease(re)); o.x = 1.5 * Math.sin(re * 2 * Math.PI * 4) * (1 - re); }
       return P(o); } }
   };
-  var EXPRS = { netral: 'Netral', senang: 'Senang', tertawa: 'Tertawa', sedih: 'Sedih', kaget: 'Kaget', marah: 'Marah', ngantuk: 'Mengantuk' };
+
+  /* ---------- suasana hati: lapisan di atas aksi apa pun (tempo, lengan, kepala, badan, wajah) ---------- */
+  var MOODS = {
+    netral: { n: 'Netral', note: 'Tanpa perubahan. Wajah mengikuti pilihan Ekspresi.' },
+    senang: { n: 'Riang', face: 'senang', tempo: 1.12, out: 74, swing: 1.3, tilt: -3, hop: 3, note: 'Tempo lebih cepat, lengan terbuka dan berayun lebar, kepala terangkat, ada pantulan kecil.' },
+    ngantuk: { n: 'Mengantuk', face: 'ngantuk', tempo: .58, out: 9, swing: .45, fore: 6, step: .6, tilt: 13, nod: 6, lean: 7, y: 4, sq: -.04, yawn: 1, note: 'Tempo lambat, lengan terkulai lurus ke bawah dan hanya berayun kecil, kepala terkulai dan terangguk-angguk, langkah diseret, sesekali menguap sambil satu tangan menutup mulut.' },
+    sedih: { n: 'Sedih', face: 'sedih', tempo: .7, out: 11, swing: .3, step: .7, tilt: 12, lean: 4, y: 5, sq: -.06, note: 'Tempo lambat, lengan jatuh, kepala menunduk, badan sedikit turun.' },
+    menangis: { n: 'Menangis', face: 'menangis', tempo: .75, arm: [34, 80, 150, 158], step: .7, tilt: 8, y: 4, sob: 1, note: 'Kedua tangan ke wajah, bahu terguncang, air mata jatuh.' },
+    marah: { n: 'Marah', face: 'marah', tempo: 1.25, out: 24, back: 18, swing: .5, lean: 7, tilt: 4, stomp: 1.6, note: 'Tempo cepat, lengan kaku lurus ke bawah-belakang, badan condong ke depan, langkah menghentak.' },
+    takut: { n: 'Takut', face: 'takut', tempo: .85, arm: [38, 76, 140, 150], step: .55, lean: -5, tilt: -2, shake: 1.2, note: 'Lengan ditarik ke dada, badan condong ke belakang, langkah kecil, seluruh badan gemetar.' },
+    malu: { n: 'Malu', face: 'malu', tempo: .8, arm: [22, -70, 34, -150], step: .65, tilt: 8, turnAway: 14, note: 'Tangan di belakang punggung, kepala menunduk dan sedikit berpaling, langkah kecil, pipi lebih merah.' },
+    bangga: { n: 'Bangga', face: 'senang', tempo: .9, arm: [52, -20, 30, 170], lean: -6, tilt: -6, hop: 2, note: 'Tangan di pinggang, dada dibusungkan, kepala terangkat.' },
+    lelah: { n: 'Lelah', face: 'bosan', tempo: .62, out: 7, swing: .35, fore: 4, step: .6, tilt: 9, lean: 11, y: 6, sq: -.05, pant: 1, note: 'Tempo lambat, badan membungkuk, lengan menggantung, napas tersengal.' },
+    bosan: { n: 'Bosan', face: 'bosan', tempo: .8, out: 14, swing: .4, tilt: 6, y: 2, note: 'Mata setengah tertutup, lengan lemas, kepala sedikit turun.' }
+  };
+  var LOCO = { diam: 1, jalan: 1, lari: 1, duduk: 1, bangku: 1 }, mood = 'netral';
+  function hang(o, a) { var n = Math.sqrt(o * o + a * a); return [n, Math.atan2(a, o) / D2R]; }
+  function applyMood(p, t) {
+    var m = MOODS[mood]; if (!m || mood === 'netral') return p;
+    var loco = !!LOCO[act], swL = p.aL[1], swR = p.aR[1];
+    if (loco) {
+      if (m.arm) { p.aL = [m.arm[0], m.arm[1] + swL * .15, m.arm[2], m.arm[3]]; p.aR = [m.arm[0], m.arm[1] + swR * .15, m.arm[2], m.arm[3]]; }
+      else if (m.out != null) [['aL', swL], ['aR', swR]].forEach(function (d) { var a = d[1] * (m.swing == null ? 1 : m.swing) - (m.back || 0), u = hang(m.out, a), fo = hang(m.out, a * 1.3 + (m.fore || 0)); p[d[0]] = [u[0], u[1], fo[0], fo[1]]; });
+      if (m.step && !p.sit) ['lL', 'lR'].forEach(function (k2) { p[k2] = [p[k2][0] * m.step, p[k2][1], p[k2][2] * m.step, p[k2][3]]; });
+      p.expr = m.face;
+    } else if (!p.expr) p.expr = m.face;
+    p.tilt += (m.tilt || 0) + (m.nod ? m.nod * Math.sin(t * 2 * Math.PI / 2.6) : 0); p.lean += m.lean || 0; p.y += m.y || 0; p.sq += m.sq || 0;
+    if (m.turnAway) p.turn += m.turnAway;
+    if (m.hop && loco) p.y -= m.hop * Math.abs(Math.sin(t * 2 * Math.PI / .45));
+    if (m.stomp && act === 'jalan') p.y *= m.stomp;
+    if (m.shake) p.x += m.shake * Math.sin(t * 2 * Math.PI * 12);
+    if (m.sob) { var sb = Math.abs(Math.sin(t * 2 * Math.PI / .5)); p.y -= 3 * sb; p.sq += .03 * sb; }
+    if (m.pant) p.sq += .03 * Math.sin(t * 2 * Math.PI / .9);
+    if (m.yawn && loco) { var yt = t % 5; if (yt > 3.2 && yt < 4.8) { var yu = yt < 3.6 ? ease((yt - 3.2) / .4) : yt > 4.4 ? 1 - ease((yt - 4.4) / .4) : 1; p.aR = mixA(p.aR, [36, 82, 152, 156], yu); p.tilt -= 16 * yu; p.sq += .05 * yu; if (yu > .4) p.expr = 'menguap'; } }
+    return p;
+  }
+  var EXPRS = { netral: 'Netral', senang: 'Senang', tertawa: 'Tertawa', kedip: 'Kedip', malu: 'Malu', bingung: 'Bingung', bosan: 'Bosan', ngantuk: 'Mengantuk', menguap: 'Menguap', sedih: 'Sedih', menangis: 'Menangis', takut: 'Takut', kaget: 'Kaget', marah: 'Marah', tidur: 'Terpejam' };
   var act = 'jalan', expr = 'senang', vkey = 'd34', t0 = performance.now(), paused = false, pausedAt = 0;
 
   /* ---------- gambar karakter ---------- */
@@ -207,6 +258,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     body = '<path d="M' + f(bx - twv) + ' ' + f(bodyTop) + 'Q' + f(bx) + ' ' + f(bodyTop - 7 * k) + ' ' + f(bx + twv) + ' ' + f(bodyTop) + 'L' + f(bx + bwv) + ' ' + f(by) + 'Q' + f(bx) + ' ' + f(by + 8 * k) + ' ' + f(bx - bwv) + ' ' + f(by) + 'Z" fill="' + cl + '" stroke="' + cd + '"' + st + '/>';
     if (look.shape === 'kaus') { var wy = bodyTop + (by - bodyTop) * .62, wx = twv + (bwv - twv) * .62; body += '<path d="M' + f(bx - wx) + ' ' + f(wy) + 'L' + f(bx + wx) + ' ' + f(wy) + 'L' + f(bx + bwv) + ' ' + f(by) + 'Q' + f(bx) + ' ' + f(by + 8 * k) + ' ' + f(bx - bwv) + ' ' + f(by) + 'Z" fill="' + shade(cl, .62) + '" stroke="' + shade(cl, .46) + '"' + st + '/>'; }
     /* kepala */
+    var S0 = s, C0 = c; if (pose.turn) { c = Math.cos((yaw + pose.turn) * D2R); s = Math.sin((yaw + pose.turn) * D2R); }
     var hx = cx + pose.x, hy = headY, hm = '', faceVis = c > -.2;
     function feat(fx, fy, fz) { var X = fx * r, Z = fz * r; return [hx + X * c + Z * s, hy + fy * r, Z * c - X * s]; }
     var ears = [feat(-.97, .08, -.12), feat(.97, .08, -.12)].sort(function (a, b) { return a[2] - b[2]; }), earM = function (e) { return '<circle cx="' + f(e[0]) + '" cy="' + f(e[1]) + '" r="' + f(10 * k) + '" fill="' + skin + '" stroke="' + sl + '"' + st + '/>'; };
@@ -232,28 +284,41 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     if (faceVis) {
       var fcid = 'fc' + o.id; hm += '<clipPath id="' + fcid + '"><circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r - 2) + '"/></clipPath>'; var hmKeep = hm; hm = '';
       var ex = pose.expr || expr, blink = o.blink, eyes = [feat(-.3, -.04, .82), feat(.3, -.04, .82)], vis = function (q) { return Math.max(0, Math.min(1, q[2] / (r * .8) + .25)); };
-      [feat(-.68, .42, .62), feat(.68, .42, .62)].forEach(function (q) { var v = Math.min(1, Math.max(0, q[2] / (r * .5))); if (v > .1) hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(13 * k * (.45 + .55 * v)) + '" ry="' + f(13 * k) + '" fill="#FF9DB5" opacity=".8"/>'; });
+      var big = ex === 'kaget' || ex === 'takut', lid = ex === 'ngantuk' || ex === 'bosan', chk = ex === 'malu' ? 1.35 : 1, browC = shade(skin, .55);
+      [feat(-.68, .42, .62), feat(.68, .42, .62)].forEach(function (q) { var v = Math.min(1, Math.max(0, q[2] / (r * .5))); if (v > .1) hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(13 * chk * k * (.45 + .55 * v)) + '" ry="' + f(13 * chk * k) + '" fill="#FF9DB5" opacity=".8"/>'; });
       eyes.forEach(function (q, i) {
-        var v = vis(q); if (v < .12) return; var er = (ex === 'kaget' ? 13 : 10.5) * k, st3 = ' stroke-width="3.5" stroke-linecap="round"', rx = er * (.5 + .5 * v), sd = i ? 1 : -1;
-        if (blink || ex === 'tertawa') hm += '<path d="M' + f(q[0] - rx) + ' ' + f(q[1] + 2 * k) + 'Q' + f(q[0]) + ' ' + f(q[1] - (ex === 'tertawa' ? 12 : 0) * k) + ' ' + f(q[0] + rx) + ' ' + f(q[1] + 2 * k) + '" fill="none" stroke="' + sl + '"' + st + '/>';
-        else {
-          hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(rx) + '" ry="' + f(er) + '" fill="#fff" stroke="' + sl + '"' + st3 + '/><circle cx="' + f(q[0] + 2 * k * s + (ex === 'sedih' ? 0 : 1.5 * k)) + '" cy="' + f(q[1] + (ex === 'sedih' ? 4 : ex === 'kaget' ? 0 : 1.5) * k) + '" r="' + f((ex === 'kaget' ? 3.2 : 4.4) * k) + '" fill="#1E1E24"/>';
-          if (ex === 'ngantuk') hm += '<path d="M' + f(q[0] - rx - 2) + ' ' + f(q[1] - er - 2) + 'H' + f(q[0] + rx + 2) + 'V' + f(q[1] + 1 * k) + 'H' + f(q[0] - rx - 2) + 'Z" fill="' + skin + '"/><path d="M' + f(q[0] - rx) + ' ' + f(q[1] + 1 * k) + 'H' + f(q[0] + rx) + '" stroke="' + sl + '"' + st + ' fill="none"/>';
+        var v = vis(q); if (v < .12) return; var er = (big ? 13 : 10.5) * k, st3 = ' stroke-width="3.5" stroke-linecap="round"', rx = er * (.5 + .5 * v), sd = i ? 1 : -1;
+        var shut = blink || ex === 'tertawa' || ex === 'menguap' || ex === 'tidur' || ex === 'menangis' || (ex === 'kedip' && i === 1);
+        if (shut) {
+          var bow = ex === 'tertawa' || ex === 'kedip' ? -12 : ex === 'menangis' ? 10 : ex === 'tidur' ? 6 : 0;
+          hm += '<path d="M' + f(q[0] - rx) + ' ' + f(q[1] + 2 * k) + 'Q' + f(q[0]) + ' ' + f(q[1] + bow * k) + ' ' + f(q[0] + rx) + ' ' + f(q[1] + 2 * k) + '" fill="none" stroke="' + sl + '"' + st + '/>';
+          if (ex === 'menangis') { var tp = ((o.t || 0) * 1.6 + i * .5) % 1; hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1] + (12 + 26 * tp) * k) + '" rx="' + f(3.5 * k) + '" ry="' + f(5.5 * k) + '" fill="#6EC6FF" opacity="' + f(1 - tp * .6) + '"/>'; }
+        } else {
+          var pdx = 2 * k * s + (ex === 'sedih' ? 0 : ex === 'bingung' ? -2.5 * k : 1.5 * k), pdy = (ex === 'sedih' || ex === 'malu' ? 4 : big ? 0 : ex === 'bingung' ? -3 : 1.5) * k;
+          hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(rx) + '" ry="' + f(er) + '" fill="#fff" stroke="' + sl + '"' + st3 + '/><circle cx="' + f(q[0] + pdx) + '" cy="' + f(q[1] + pdy) + '" r="' + f((big ? 3.2 : 4.4) * k) + '" fill="#1E1E24"/>';
+          if (lid) hm += '<path d="M' + f(q[0] - rx - 2) + ' ' + f(q[1] - er - 2) + 'H' + f(q[0] + rx + 2) + 'V' + f(q[1] + 1 * k) + 'H' + f(q[0] - rx - 2) + 'Z" fill="' + skin + '"/><path d="M' + f(q[0] - rx) + ' ' + f(q[1] + 1 * k) + 'H' + f(q[0] + rx) + '" stroke="' + sl + '"' + st + ' fill="none"/>';
         }
-        if (ex === 'marah' || ex === 'sedih') { var up = ex === 'marah' ? 1 : -1; hm += '<path d="M' + f(q[0] - rx * 1.1) + ' ' + f(q[1] - er - (6 + 5 * up * -sd) * k) + 'L' + f(q[0] + rx * 1.1) + ' ' + f(q[1] - er - (6 + 5 * up * sd) * k) + '" fill="none" stroke="' + shade(skin, .55) + '"' + st + '/>'; }
+        var bt = ex === 'marah' ? 1 : (ex === 'sedih' || ex === 'takut' || ex === 'menangis') ? -1 : ex === 'bingung' ? (i === 1 ? 1 : 0) : null;
+        if (bt !== null) { var lift = ex === 'bingung' && i === 0 ? 11 : 6; hm += '<path d="M' + f(q[0] - rx * 1.1) + ' ' + f(q[1] - er - (lift + 5 * bt * -sd) * k) + 'L' + f(q[0] + rx * 1.1) + ' ' + f(q[1] - er - (lift + 5 * bt * sd) * k) + '" fill="none" stroke="' + browC + '"' + st + '/>'; }
       });
       hm = hmKeep + '<g clip-path="url(#' + fcid + ')">' + hm + '</g>'; hmKeep = hm; hm = '';
-      var nz = feat(0, .2, 1.02), mo = feat(0, .52, .6), mw = 21 * k * (.7 + .3 * Math.abs(c)), mx = mo[0], my = mo[1], pink = '#C4577A', talk = o.talk;
+      var nz = feat(0, .2, 1.02), mo = feat(0, .52, .6), mw = 21 * k * (.7 + .3 * Math.abs(c)), mx = mo[0], my = mo[1], pink = '#C4577A', talk = o.talk, dark = '#7A1F3D', ln = '" fill="none" stroke="' + pink + '"' + st + '/>';
       if (c > .2) hm += '<path d="M' + f(nz[0] - 5 * k) + ' ' + f(nz[1]) + 'Q' + f(nz[0]) + ' ' + f(nz[1] + 6 * k) + ' ' + f(nz[0] + 5 * k) + ' ' + f(nz[1]) + '" fill="none" stroke="' + sl + '"' + st + '/>';
       else hm += '<circle cx="' + f(nz[0] - 2 * k * s) + '" cy="' + f(nz[1]) + '" r="' + f(7 * k) + '" fill="' + skin + '" stroke="' + sl + '"' + st + '/>';
       hm = hmKeep + hm; hmKeep = hm; hm = '';
-      if (talk === 'o' && ex !== 'tertawa') hm += '<circle cx="' + f(mx) + '" cy="' + f(my + 3 * k) + '" r="' + f(4.5 * k) + '" fill="#7A1F3D" stroke="' + pink + '"' + st + '/>';
-      else if (ex === 'tertawa' || talk || ex === 'kaget') { var oh = (ex === 'kaget' ? 9 : talk === 'a' && ex !== 'tertawa' ? 8 : 15) * k, ow = ex === 'kaget' ? mw * .45 : mw; hm += '<path d="M' + f(mx - ow) + ' ' + f(my - 3 * k) + 'Q' + f(mx) + ' ' + f(my + oh * 2) + ' ' + f(mx + ow) + ' ' + f(my - 3 * k) + (ex === 'kaget' ? 'Q' + f(mx) + ' ' + f(my - oh) + ' ' + f(mx - ow) + ' ' + f(my - 3 * k) : '') + 'Z" fill="#7A1F3D" stroke="' + pink + '"' + st + '/>'; }
-      else if (ex === 'sedih' || ex === 'marah') hm += '<path d="M' + f(mx - mw * .8) + ' ' + f(my + 6 * k) + 'Q' + f(mx) + ' ' + f(my - 8 * k) + ' ' + f(mx + mw * .8) + ' ' + f(my + 6 * k) + '" fill="none" stroke="' + pink + '"' + st + '/>';
-      else if (ex === 'ngantuk') hm += '<ellipse cx="' + f(mx) + '" cy="' + f(my + 2 * k) + '" rx="' + f(6 * k) + '" ry="' + f(8 * k) + '" fill="#7A1F3D" stroke="' + pink + '"' + st + '/>';
-      else hm += '<path d="M' + f(mx - mw) + ' ' + f(my - 4 * k) + 'Q' + f(mx) + ' ' + f(my + (ex === 'senang' ? 16 : 9) * k) + ' ' + f(mx + mw) + ' ' + f(my - 4 * k) + '" fill="none" stroke="' + pink + '"' + st + '/>';
+      if (ex === 'menguap') hm += '<ellipse cx="' + f(mx) + '" cy="' + f(my + 3 * k) + '" rx="' + f(10 * k) + '" ry="' + f(15 * k) + '" fill="' + dark + '" stroke="' + pink + '"' + st + '/>';
+      else if (ex === 'menangis') hm += '<path d="M' + f(mx - mw * .8) + ' ' + f(my + 11 * k) + 'Q' + f(mx) + ' ' + f(my - 20 * k) + ' ' + f(mx + mw * .8) + ' ' + f(my + 11 * k) + 'Z" fill="' + dark + '" stroke="' + pink + '"' + st + '/>';
+      else if (talk === 'o' && ex !== 'tertawa') hm += '<circle cx="' + f(mx) + '" cy="' + f(my + 3 * k) + '" r="' + f(4.5 * k) + '" fill="' + dark + '" stroke="' + pink + '"' + st + '/>';
+      else if (ex === 'tertawa' || talk || ex === 'kaget') { var oh = (ex === 'kaget' ? 9 : talk === 'a' && ex !== 'tertawa' ? 8 : 15) * k, ow = ex === 'kaget' ? mw * .45 : mw; hm += '<path d="M' + f(mx - ow) + ' ' + f(my - 3 * k) + 'Q' + f(mx) + ' ' + f(my + oh * 2) + ' ' + f(mx + ow) + ' ' + f(my - 3 * k) + (ex === 'kaget' ? 'Q' + f(mx) + ' ' + f(my - oh) + ' ' + f(mx - ow) + ' ' + f(my - 3 * k) : '') + 'Z" fill="' + dark + '" stroke="' + pink + '"' + st + '/>'; }
+      else if (ex === 'takut') { var q4 = mw * .4; hm += '<path d="M' + f(mx - mw * .8) + ' ' + f(my + 3 * k) + 'q' + f(q4 / 2) + ' ' + f(-7 * k) + ' ' + f(q4) + ' 0t' + f(q4) + ' 0t' + f(q4) + ' 0t' + f(q4) + ' 0' + ln; }
+      else if (ex === 'sedih' || ex === 'marah') hm += '<path d="M' + f(mx - mw * .8) + ' ' + f(my + 6 * k) + 'Q' + f(mx) + ' ' + f(my - 8 * k) + ' ' + f(mx + mw * .8) + ' ' + f(my + 6 * k) + ln;
+      else if (ex === 'ngantuk') hm += '<ellipse cx="' + f(mx) + '" cy="' + f(my + 2 * k) + '" rx="' + f(6 * k) + '" ry="' + f(8 * k) + '" fill="' + dark + '" stroke="' + pink + '"' + st + '/>';
+      else if (ex === 'bosan' || ex === 'tidur') hm += '<path d="M' + f(mx - mw * (ex === 'tidur' ? .35 : .6)) + ' ' + f(my + 2 * k) + 'H' + f(mx + mw * (ex === 'tidur' ? .35 : .6)) + ln;
+      else if (ex === 'bingung') hm += '<path d="M' + f(mx - mw * .5) + ' ' + f(my + 5 * k) + 'L' + f(mx + mw * .5) + ' ' + f(my - 1 * k) + ln;
+      else { var sm = ex === 'malu' ? .55 : 1; hm += '<path d="M' + f(mx - mw * sm) + ' ' + f(my - 4 * k * sm) + 'Q' + f(mx) + ' ' + f(my + (ex === 'senang' || ex === 'kedip' ? 16 : 9) * k * sm) + ' ' + f(mx + mw * sm) + ' ' + f(my - 4 * k * sm) + ln; }
       hm = hmKeep + '<g clip-path="url(#' + fcid + ')">' + hm + '</g>';
     }
+    s = S0; c = C0;
     var head = '<g transform="rotate(' + f((pose.tilt || 0) * (Math.abs(s) > .3 ? 1 : .4)) + ' ' + f(hx) + ' ' + f(bodyTop) + ')">' + hm + '</g>';
     var prop = pose.prop === 'bangku' ? '<path d="M' + f(cx - 52 * k) + ' ' + f(gy - legD - 2 * k) + 'h' + f(104 * k) + 'v' + f(12 * k) + 'h' + f(-104 * k) + 'zM' + f(cx - 42 * k) + ' ' + f(gy - legD + 10 * k) + 'v' + f(legD - 10 * k) + 'M' + f(cx + 42 * k) + ' ' + f(gy - legD + 10 * k) + 'v' + f(legD - 10 * k) + '" fill="#C9935A" stroke="#9A6A3A" stroke-width="5" stroke-linejoin="round"/>' : '';
     var upper = '<g transform="rotate(' + f((pose.lean || 0) * s) + ' ' + f(cx + pose.x) + ' ' + f(hipY) + ')">' + back + body + head + front + '</g>';
@@ -264,6 +329,11 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
   }
   function rawPose(t) { return ($('pri').checked && ACTS2[act] ? ACTS2[act] : ACTS[act]).f(Math.max(0, t)); }
   function poseAt(t) {
+    var tm = t * ((MOODS[mood] && MOODS[mood].tempo) || 1), p = rawPose(tm);
+    if ($('pri').checked) { var p0 = rawPose(tm - .06); if (!p.hdy) p.hdy = Math.max(-7, Math.min(7, (p0.y - p.y) * .28)); }
+    return applyMood(p, t);
+  }
+  function poseAtOld(t) {
     var p = rawPose(t); if (!$('pri').checked) return p;
     /* tindak lanjut: kepala sedikit tertinggal dari gerak naik-turun badan */
     var p0 = rawPose(t - .06); p.hdy = Math.max(-7, Math.min(7, (p0.y - p.y) * .28)); return p;
@@ -275,7 +345,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     var yaw = 0; VIEWS.forEach(function (v) { if (v[0] === vkey) yaw = v[2]; });
     var bl = t > blinkAt && t < blinkAt + .14; if (t > blinkAt + .14) blinkAt = t + 1.6 + Math.random() * 2.4; if (t < blinkAt - 6) blinkAt = t + 1;
     var TS = ['A', 'A', 'a', 'o', 'A', 'a', '', 'A', 'o', 'a', '', ''], talk = $('talk').checked ? TS[Math.floor(t / .1) % TS.length] : '';
-    $('stage').innerHTML = scene(draw(poseAt(t), yaw, { cx: 200, gy: 408, id: 'm', scale: 1.55, blink: bl, talk: talk, flip: $('flip').checked }));
+    $('stage').innerHTML = scene(draw(poseAt(t), yaw, { cx: 200, gy: 408, id: 'm', scale: 1.55, blink: bl, talk: talk, flip: $('flip').checked, t: t }));
     requestAnimationFrame(frame);
   }
   function thumbs() {
@@ -296,12 +366,14 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     e.value = look[key]; e.onchange = function () { look[key] = e.value; thumbs(); };
   }
   seg('acts', ACTS, function () { return act; }, function (k) { act = k; t0 = performance.now(); if (paused) pausedAt = t0; note(); });
+  seg('moods', MOODS, function () { return mood; }, function (k) { mood = k; $('moodNote').textContent = MOODS[k].note; });
+  $('moodNote').textContent = MOODS[mood].note;
   seg('exprs', EXPRS, function () { return expr; }, function (k) { expr = k; });
   function note() { var on = $('pri').checked && ACTS2[act]; $('actNote').textContent = on ? 'Prinsip yang dipakai: ' + ACTS2[act].pr : ACTS[act].note + ($('pri').checked ? '' : ' (Mode acuan: tanpa 12 prinsip.)'); }
   note(); $('pri').onchange = function () { t0 = performance.now(); if (paused) pausedAt = t0; note(); };
   fill('o-size', SIZES, 'size'); fill('o-skin', SKINS, 'skin'); fill('o-hair', HAIRS, 'hair'); fill('o-hairc', HAIRC, 'hairc'); fill('o-shape', SHAPES, 'shape'); fill('o-cloth', CLOTH, 'cloth'); fill('o-shoe', SHOES, 'shoe');
   $('pause').onclick = function () { paused = !paused; if (paused) pausedAt = performance.now(); else t0 += performance.now() - pausedAt; this.textContent = paused ? 'Putar' : 'Jeda'; this.setAttribute('aria-pressed', String(paused)); };
-  window.g3 = function (a, v, t) { act = a; vkey = v; paused = true; t0 = 0; pausedAt = t * 1000; thumbs(); };
+  window.g3 = function (a, v, t, m, e) { mood = m || 'netral'; if (e) expr = e; act = a; vkey = v; paused = true; t0 = 0; pausedAt = t * 1000; thumbs(); };
   thumbs(); requestAnimationFrame(frame);
 })();
 </script>

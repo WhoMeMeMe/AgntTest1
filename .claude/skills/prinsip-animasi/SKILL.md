@@ -88,7 +88,31 @@ the characters (see project CLAUDE.md, section 2).
 - Eyes: white ellipse r 10.5, outline 3.5, pupil r 4.4. Mouth: 5 px pink line.
 - Hair is clipped to the head circle; the head outline under hair uses the hair's dark colour.
 
-## 5. Checklist before calling an animation done
+## 6. Mood layer (suasana hati): any action x any mood
+
+Do not hand-animate "walk while sleepy" as a separate action. Keep three layers and
+combine them: **action** (what the body does) x **mood** (how it does it) x **face/mouth**.
+A mood changes tempo, arm carriage, head, body and face on top of any locomotion or
+idle action (stand, walk, run, sit).
+
+| Mood | Tempo | Arms | Head / body | Extra |
+|---|---|---|---|---|
+| Riang | x1.12 | open 74 degrees, swing x1.3 | head up 3 | small hop 3 px |
+| Mengantuk | x0.58 | hang straight down (9 degrees out), swing x0.45 | head droops 13 and nods +/-6 every 2.6 s, lean 7, body 4 px lower | step x0.6; yawn every 5 s for 1.6 s with one hand to the mouth |
+| Sedih | x0.70 | hang (11), swing x0.3 | head down 12, body 5 px lower, squash -0.06 | step x0.7 |
+| Menangis | x0.75 | both hands to the face | head down 8 | shoulders sob every 0.5 s, tears fall |
+| Marah | x1.25 | stiff, down and 18 degrees back, swing x0.5 | lean 7 forward | walk bob x1.6 (stomping) |
+| Takut | x0.85 | pulled to the chest | lean 5 back | step x0.55, 12 Hz tremble |
+| Malu | x0.80 | behind the back | head down 8, turned away 14 | step x0.65, bigger cheeks |
+| Bangga | x0.90 | hands on hips | chest out (lean -6), head up 6 | hop 2 px |
+| Lelah | x0.62 | dangle (7), swing x0.35 | lean 11, head down 9, body 6 px lower | panting squash every 0.9 s |
+| Bosan | x0.80 | limp (14), swing x0.4 | head down 6 | half-closed eyes |
+
+Faces available: netral, senang, tertawa, kedip, malu, bingung, bosan, mengantuk, menguap,
+sedih, menangis, takut, kaget, marah, terpejam. Extra actions: menunjuk, tepuk tangan,
+mengangguk, menggeleng (head yaw offset), tidak tahu (shrug), tidur.
+
+## 7. Checklist before calling an animation done
 
 - [ ] Mode chosen (reference or 12 principles) and stated to the director.
 - [ ] Every action has anticipation, an extreme, and a settle (or a stated reason not to).
