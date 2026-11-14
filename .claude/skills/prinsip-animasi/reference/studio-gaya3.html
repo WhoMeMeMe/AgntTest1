@@ -49,6 +49,23 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       <div class="sec"><span class="label">Aksi</span><div class="row" id="acts"></div><p class="hint" id="actNote"></p></div>
       <div class="sec"><span class="label">Suasana hati</span><div class="row" id="moods"></div><p class="hint" id="moodNote"></p></div>
       <div class="sec"><span class="label">Ekspresi</span><div class="row" id="exprs"></div><p class="hint">Wajah saja. Dipakai bila suasana hati Netral dan aksinya tidak membawa wajah sendiri.</p></div>
+      <div class="sec"><span class="label">Editor bagian</span>
+        <div class="row"><button type="button" id="ptToggle" aria-pressed="false">Edit bagian</button><button type="button" id="ptCopy">Salin kode bagian</button></div>
+        <div id="ptBody" hidden>
+          <div class="opts" style="margin-top:10px">
+            <label for="p-part">Bagian</label><select id="p-part"></select>
+            <label for="p-rot">Putar</label><div class="row"><input type="range" id="p-rot" min="-180" max="180" style="flex:1"><span id="p-rotv" class="hint" style="margin:0;min-width:3em"></span></div>
+            <label for="p-dx">Geser kiri-kanan</label><input type="range" id="p-dx" min="-80" max="80">
+            <label for="p-dy">Geser atas-bawah</label><input type="range" id="p-dy" min="-80" max="80">
+            <label for="p-sc">Ukuran</label><div class="row"><input type="range" id="p-sc" min="40" max="220" style="flex:1"><span id="p-scv" class="hint" style="margin:0;min-width:3em"></span></div>
+            <label for="p-z">Lapisan</label><select id="p-z"><option value="auto">Otomatis</option><option value="front">Di depan</option><option value="back">Di belakang</option></select>
+          </div>
+          <div class="row" style="margin-top:10px"><label class="chk"><input type="checkbox" id="p-hide"> Sembunyikan</label><label class="chk"><input type="checkbox" id="p-view"> Hanya untuk tampak ini</label></div>
+          <div class="row" style="margin-top:10px"><button type="button" id="ptReset">Bagian ini ke asal</button><button type="button" id="ptResetAll">Semua bagian ke asal</button></div>
+        </div>
+        <textarea id="ptCode" hidden readonly rows="2" aria-label="Kode bagian" style="width:100%;margin-top:8px;font:12px ui-monospace,monospace;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);padding:6px"></textarea>
+        <p class="hint" id="ptMsg" aria-live="polite">Putar, geser, perbesar, atau pindahkan telinga, dasi, pita, topi, dan ekor ke depan atau belakang.</p>
+      </div>
       <div class="sec"><span class="label">Editor pose</span>
         <div class="row"><button type="button" id="edToggle" aria-pressed="false">Edit pose ini</button><button type="button" id="edCopy">Salin kode pose</button><button type="button" id="edDel" hidden>Hapus pose ini</button></div>
         <div id="edBody" hidden>
@@ -111,6 +128,9 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     wawan: { n: '13 Pak Wawan', size: 'dewasa', fur: '#807887', line: '#55505A', muzzle: '#BFB0A6', snout: 1, ears: 'kerbau', horn: '#F1E6CC', hat: 'topi', hatC: OR, tail: 'kerbau', top: { c: '#FFFFFF', line: '#B4B4BA', d: 'kerah' }, bottom: { t: 'celanapendek', c: '#9A5F3C' } },
     bayu: { n: '14 Bayu', size: 'anak', fur: '#F2AC5E', line: '#B8875A', muzzle: CR, ears: 'rusa', antler: '#A86B33', tail: 'rusa', top: { c: '#E63B35', line: '#B92C28', d: 'polos' }, bottom: { t: 'celanapendek', c: '#2F3F6B' } }
   };
+  var TW = {}, PT = { on: false, part: 'earL', k: 1, drag: null }, TKEY = 'g3-bagian';
+  try { TW = JSON.parse(localStorage.getItem(TKEY) || '{}') || {}; } catch (e) { TW = {}; }
+  var PNAMES = { earL: 'Telinga kiri layar', earR: 'Telinga kanan layar', antL: 'Tanduk rusa kiri', antR: 'Tanduk rusa kanan', hornL: 'Tanduk kerbau kiri', hornR: 'Tanduk kerbau kanan', bow: 'Pita', hat: 'Topi / peci', jambul: 'Jambul', bun: 'Sanggul', detail: 'Hiasan baju (dasi, kancing, motif)', tail: 'Ekor' };
   var look = { cast: 'nisa', size: 'anak', skin: '#F9D2B0', hair: 'poni', hairc: '#3B2A20', shape: 'gaun', cloth: '#F25C54', shoe: '#2B2B33' };
   function shade(hex, k) { var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255; function c(v) { return Math.max(0, Math.min(255, Math.round(v * k))); } return '#' + ((1 << 24) + (c(r) << 16) + (c(g) << 8) + c(b)).toString(16).slice(1); }
   function f(v) { return (Math.round(v * 10) / 10).toString(); }
@@ -270,6 +290,12 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     var rotK = Math.min(1, Math.abs(s) / .5);
     var C = look.cast && CAST[look.cast] || null;
     var skin = C ? C.fur : look.skin, sl = C ? (C.line || shade(skin, .75)) : shade(skin, .8), lc = C ? (C.limb || C.fur) : sl, cl = C ? C.top.c : look.cloth, cd = C ? (C.top.line || shade(cl, .76)) : shade(cl, cl === '#FFFFFF' ? .78 : .76), shoe = C ? '#1E1E24' : look.shoe, hc = C ? (C.hair ? C.hair.c : '#000000') : look.hairc, hd = shade(hc, .72);
+    var TWc = TW[look.cast || '_'] || {}, vw = o.view || vkey; if (o.id === 'm') PT.k = k;
+    function twk(n) { return (TWc[vw] && TWc[vw][n]) || (TWc.all && TWc.all[n]) || null; }
+    function zOf(n) { var t = twk(n); return (t && t.z) || 'auto'; }
+    function part(n, m, px, py) { if (!m) return ''; var t = twk(n); if (t && t.hide) return ''; var tr = t ? ' transform="translate(' + f((t.dx || 0) * k) + ' ' + f((t.dy || 0) * k) + ') rotate(' + f(t.rot || 0) + ' ' + f(px) + ' ' + f(py) + ') translate(' + f(px) + ' ' + f(py) + ') scale(' + (t.sc || 1) + ') translate(' + f(-px) + ' ' + f(-py) + ')"' : ''; return '<g data-part="' + n + '"' + tr + '>' + m + '</g>'; }
+    var backExtra = '', headTop = '';
+    function putZ(n, m) { var z = zOf(n); if (z === 'back') { backExtra += m; return ''; } if (z === 'front') { headTop += m; return ''; } return m; }
     var hairOn = C ? !!C.hair : look.hair !== 'botak', bt = C ? C.bottom : null, bc = bt ? bt.c : '', bd = bt ? shade(bt.c, .72) : '';
     var legU = 12 * k * bodyK, legD = 12 * k * bodyK, bodyH = 88 * k * bodyK, tw = 20 * k, bw = 56 * k * (bodyK > 1.2 ? 1.04 : 1), r = 62 * k, armU = 25 * k * (bodyK > 1.2 ? 1.25 : 1), armD = 23 * k * (bodyK > 1.2 ? 1.25 : 1), lw = 5;
     var sit = pose.sit || 0, hipY = gy - 7 * k - (legU + legD) + Math.min(1, sit) * legU + Math.max(0, sit - 1) * (legD - 3 * k) + pose.y, bodyTop = hipY - bodyH + 6 * k, headY = bodyTop - r * .8 + (pose.hdy || 0) * k;
@@ -319,7 +345,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       if (C.tail === 'kucing' || C.tail === 'kadal' || C.tail === 'kerbau') tl = '<path d="M' + f(tx) + ' ' + f(ty) + 'q' + f(dT * 24 * k) + ' ' + f(12 * k) + ' ' + f(dT * 40 * k) + ' ' + f(-16 * k) + '" fill="none" stroke="' + tcol + '" stroke-width="' + f((C.tail === 'kerbau' ? 4.5 : C.tail === 'kadal' ? 9 : 7.5) * k) + '" stroke-linecap="round"/>';
       else if (C.tail === 'rusa') tl = '<ellipse cx="' + f(tx + dT * 12 * k) + '" cy="' + f(ty - 2 * k) + '" rx="' + f(9 * k) + '" ry="' + f(13 * k) + '" transform="rotate(' + f(dT * 35) + ' ' + f(tx + dT * 12 * k) + ' ' + f(ty) + ')" fill="' + tcol + '"/>';
       else if (C.tail === 'ayam') [38, 8, -22].forEach(function (a) { var ar = a * D2R, fx = tx + dT * 24 * k * Math.cos(ar), fy = ty + 2 * k + 24 * k * Math.sin(ar); tl += '<ellipse cx="' + f(fx) + '" cy="' + f(fy) + '" rx="' + f(22 * k) + '" ry="' + f(9 * k) + '" transform="rotate(' + f(dT > 0 ? a : 180 - a) + ' ' + f(fx) + ' ' + f(fy) + ')" fill="' + tcol + '" stroke="' + shade(tcol, .78) + '" stroke-width="3"/>'; });
-      var tailFront = C0b < -.3; if (!tailFront) body += tl;
+      var tailFront = C0b < -.3; tl = part('tail', tl, tx, ty); if (zOf('tail') === 'front') tailFront = true; else if (zOf('tail') === 'back') tailFront = false; if (!tailFront) body += tl;
       /* bawahan */
       var hemY = by + 2 * k, hw = bwv * 1.04, bot = '';
       if (bt.t === 'rokpanjang') { hemY = Math.min(hipY + (legU + legD) * .78, gy - 6 * k); hw = bwv * .98; }
@@ -334,6 +360,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       body += bot;
       /* atasan */
       body += '<path d="M' + f(bx - twv) + ' ' + f(bodyTop) + 'Q' + f(bx) + ' ' + f(bodyTop - 6 * k) + ' ' + f(bx + twv) + ' ' + f(bodyTop) + 'L' + f(bx + wx2 + 2 * k) + ' ' + f(wy2 + 2 * k) + 'Q' + f(bx) + ' ' + f(wy2 + 6 * k) + ' ' + f(bx - wx2 - 2 * k) + ' ' + f(wy2 + 2 * k) + 'Z" fill="' + cl + '" stroke="' + cd + '"' + st + '/>';
+      var bLen = body.length;
       if (frontV) {
         var ty0 = bodyTop + 3 * k, mid = (bodyTop + wy2) / 2 + 4 * k, thin = '" fill="none" stroke="' + cd + '" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
         if (D === 'rompi') body += '<path d="M' + f(bx - 7 * k) + ' ' + f(bodyTop - 2 * k) + 'h' + f(14 * k) + 'L' + f(bx + 8 * k) + ' ' + f(wy2 + 3 * k) + 'h' + f(-16 * k) + 'Z" fill="' + C.top.c2 + '"/><path d="M' + f(bx + 9 * k) + ' ' + f(mid - 8 * k) + 'h' + f(14 * k) + '" stroke="#FFFFFF" stroke-width="' + f(5 * k) + '" fill="none"/>';
@@ -342,6 +369,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
         if (D === 'kancing' || D === 'koko') [0, 1, 2].slice(0, D === 'koko' ? 2 : 3).forEach(function (i4) { body += '<circle cx="' + f(bx) + '" cy="' + f(mid - 8 * k + i4 * 11 * k) + '" r="' + f(2.6 * k) + '" fill="' + (C.top.c2 || cd) + '"/>'; });
         if (D === 'kebaya') body += '<path d="M' + f(bx - 10 * k) + ' ' + f(bodyTop) + 'L' + f(bx + 4 * k) + ' ' + f(mid) + 'L' + f(bx - 2 * k) + ' ' + f(wy2 + 3 * k) + 'M' + f(bx + 10 * k) + ' ' + f(bodyTop) + 'L' + f(bx + 4 * k) + ' ' + f(mid) + thin;
         if (D !== 'kebaya' && D !== 'polos' && D !== 'rompi') body += '<path d="M' + f(bx - 13 * k) + ' ' + f(bodyTop - 1 * k) + 'l' + f(7 * k) + ' ' + f(9 * k) + 'l' + f(6 * k) + ' ' + f(-8 * k) + 'l' + f(6 * k) + ' ' + f(8 * k) + 'l' + f(7 * k) + ' ' + f(-9 * k) + thin;
+        body = body.slice(0, bLen) + part('detail', body.slice(bLen), bx, bodyTop + 6 * k);
       } else if (D === 'rompi' && C0b < -.3) body += '<path d="M' + f(bx - 16 * k) + ' ' + f((bodyTop + wy2) / 2 - 4 * k) + 'h' + f(32 * k) + '" stroke="#FFFFFF" stroke-width="' + f(5 * k) + '" fill="none"/>';
       if (tailFront) body += tl;
     }
@@ -360,12 +388,15 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
         if (C.ears === 'kucing') { e = feat(sd * .6, -.7, 0); e[0] += bk * .3; var ln2 = sd * 9 * k * ac, tr = function (b2, h2, col, o2) { return '<path d="M' + f(e[0] - b2) + ' ' + f(e[1] + 10 * k) + 'Q' + f(e[0] - b2 * .55 + ln2) + ' ' + f(e[1] - h2 * .95) + ' ' + f(e[0] + ln2) + ' ' + f(e[1] - h2) + 'Q' + f(e[0] + b2 * .55 + ln2) + ' ' + f(e[1] - h2 * .95) + ' ' + f(e[0] + b2) + ' ' + f(e[1] + 10 * k) + 'Z" fill="' + col + o2; }; m2 = tr(27 * k, 52 * k, ef, OS) + (showIn ? tr(16 * k, 36 * k, pinkIn, '"/>') : ''); }
         else if (C.ears === 'kelinci') { e = feat(sd * .4, -.9, 0); e[0] += bk * .22; var rot = ' transform="rotate(' + f(sd * 10 * ac) + ' ' + f(e[0]) + ' ' + f(e[1]) + ')"'; m2 = '<ellipse' + rot + ' cx="' + f(e[0]) + '" cy="' + f(e[1] - 36 * k) + '" rx="' + f(21 * k) + '" ry="' + f(52 * k) + '" fill="' + ef + OS + (showIn ? '<ellipse' + rot + ' cx="' + f(e[0]) + '" cy="' + f(e[1] - 34 * k) + '" rx="' + f(10 * k) + '" ry="' + f(34 * k) + '" fill="' + pinkIn + '"/>' : ''); }
         else if (C.ears === 'rusa' || C.ears === 'kerbau') { var kb = C.ears === 'kerbau'; e = feat(sd * (kb ? 1.02 : .9), kb ? -.12 : -.52, 0); e[0] += bk * (kb ? .35 : .55); var ex2 = e[0] + sd * 20 * k * ac, rt = ' transform="rotate(' + f(ac > .35 ? sd * (kb ? 12 : -30) : (s > 0 ? 1 : -1) * (kb ? -10 : 40)) + ' ' + f(ex2) + ' ' + f(e[1]) + ')"'; m2 = '<ellipse' + rt + ' cx="' + f(ex2) + '" cy="' + f(e[1]) + '" rx="' + f(31 * k) + '" ry="' + f(17 * k) + '" fill="' + ef + OS + (showIn && !kb ? '<ellipse' + rt + ' cx="' + f(ex2) + '" cy="' + f(e[1] + 2 * k) + '" rx="' + f(20 * k) + '" ry="' + f(9 * k) + '" fill="' + pinkIn + '"/>' : ''); }
+        var sN = sd < 0 ? 'L' : 'R', earM = part('ear' + sN, m2, e ? e[0] : hx, e ? e[1] : hy); m2 = '';
         if (C.antler) { var a2 = feat(sd * (C.hat ? .66 : .4), C.hat ? -.76 : -.92, 0); m2 += '<path d="M' + f(a2[0]) + ' ' + f(a2[1] + 6 * k) + 'l' + f(sd * 5 * k) + ' ' + f(-30 * k) + 'q' + f(sd * 14 * k) + ' ' + f(-4 * k) + ' ' + f(sd * 14 * k) + ' ' + f(-22 * k) + 'M' + f(a2[0] + sd * 4 * k) + ' ' + f(a2[1] - 16 * k) + 'q' + f(-sd * 12 * k) + ' ' + f(-6 * k) + ' ' + f(-sd * 9 * k) + ' ' + f(-24 * k) + '" fill="none" stroke="' + C.antler + '" stroke-width="' + f(9 * k) + '" stroke-linecap="round" stroke-linejoin="round"/>'; }
+        var antM = part('ant' + sN, m2, a2 ? a2[0] : hx, a2 ? a2[1] : hy); m2 = '';
         if (C.horn) { var h3 = feat(sd * .78, -.7, 0); m2 += '<path d="M' + f(h3[0] - sd * 8 * k) + ' ' + f(h3[1] + 8 * k) + 'q' + f(sd * 34 * k) + ' ' + f(-4 * k) + ' ' + f(sd * 22 * k) + ' ' + f(-44 * k) + 'q' + f(sd * 2 * k) + ' ' + f(26 * k) + ' ' + f(-sd * 30 * k) + ' ' + f(30 * k) + 'Z" fill="' + C.horn + OS; }
         /* telinga yang dekat kamera digambar di depan kepala saat kepala menoleh */
-        if (Math.abs(s) > .3 && c > -.2 && e && e[2] > 0) earFront += m2; else earBack += m2;
+        var hornM = part('horn' + sN, m2, h3 ? h3[0] : hx, h3 ? h3[1] : hy), nearF = Math.abs(s) > .3 && c > -.2 && e && e[2] > 0;
+        [[earM, 'ear'], [antM, 'ant'], [hornM, 'horn']].forEach(function (pp) { if (!pp[0]) return; var z = zOf(pp[1] + sN); if (z === 'front') headTop += pp[0]; else if (z === 'back' || !nearF) earBack += pp[0]; else earFront += pp[0]; });
       });
-      if (C.bun && c > -.3) { var bq = feat(-.62, .02, -.85); earBack += '<circle cx="' + f(bq[0]) + '" cy="' + f(bq[1]) + '" r="' + f(24 * k) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>'; }
+      if (C.bun && c > -.3) { var bq = feat(-.62, .02, -.85); earBack += part('bun', '<circle cx="' + f(bq[0]) + '" cy="' + f(bq[1]) + '" r="' + f(24 * k) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>', bq[0], bq[1]); }
       if (C.hijab) earBack = '<ellipse cx="' + f(hx) + '" cy="' + f(hy + r * .92) + '" rx="' + f(r * .92) + '" ry="' + f(r * .5) + '" fill="' + C.hijab + '" stroke="' + sl + '"' + st + '/>' + earBack;
     }
     if (!C && look.hair !== 'botak') {
@@ -373,7 +404,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       if (look.hair === 'kuncir') [-1, 1].forEach(function (sd) { var q = feat(sd * 1.05, -.35, -.25); hm += '<circle cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" r="' + f(17 * k) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>'; });
       if (look.hair === 'jabrik') { var sp = ''; for (var i = -3; i <= 3; i++) { var a = (-90 + i * 22) * D2R, x0 = hx + Math.cos(a) * r * .98, y0 = hy + Math.sin(a) * r * .98; sp += 'M' + f(x0 - 9 * k) + ' ' + f(y0 + 6 * k) + 'L' + f(hx + Math.cos(a) * r * 1.3) + ' ' + f(hy + Math.sin(a) * r * 1.3) + 'L' + f(x0 + 9 * k) + ' ' + f(y0 + 6 * k); } hm += '<path d="' + sp + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>'; }
     }
-    hm += earBack + '<circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r) + '" fill="' + (C && C.hijab ? C.hijab : skin) + '" stroke="' + sl + '"' + st + '/>';
+    hm += earBack + '<!--B-->' + '<circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r) + '" fill="' + (C && C.hijab ? C.hijab : skin) + '" stroke="' + sl + '"' + st + '/>';
     if (C) {
       var kid = 'kc' + o.id, hin = '<clipPath id="' + kid + '"><circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r - lw / 2) + '"/></clipPath><g clip-path="url(#' + kid + ')">';
       if (C.hijab && c > -.3) hin += '<ellipse cx="' + f(hx + s * r * .32) + '" cy="' + f(hy + r * .06) + '" rx="' + f(r * .84 * (.62 + .38 * ac)) + '" ry="' + f(r * .8) + '" fill="' + skin + '" stroke="' + sl + '"' + st + '/>';
@@ -400,11 +431,11 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     }
     hm += earFront;
     if (C) {
-      if (C.bun && c <= -.3) { var bq2 = feat(-.62, .02, -.85); hm += '<circle cx="' + f(bq2[0]) + '" cy="' + f(bq2[1]) + '" r="' + f(24 * k) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>'; }
-      if (C.hair && C.hair.t === 'jambul') hm += '<path d="M' + f(hx - s * r * .2 - 6 * k) + ' ' + f(hy - r * .98) + 'q' + f(10 * k + s * 10 * k) + ' ' + f(-22 * k) + ' ' + f(34 * k) + ' ' + f(-20 * k) + 'q' + f(-12 * k) + ' ' + f(8 * k) + ' ' + f(-10 * k) + ' ' + f(22 * k) + 'Z" fill="' + hc + '" stroke="' + hd + '"' + st + '/>';
-      if (C.hat === 'peci') hm += '<path d="M' + f(hx - r * .56) + ' ' + f(hy - r * .8) + 'L' + f(hx - r * .52) + ' ' + f(hy - r * 1.36) + 'Q' + f(hx) + ' ' + f(hy - r * 1.46) + ' ' + f(hx + r * .52) + ' ' + f(hy - r * 1.36) + 'L' + f(hx + r * .56) + ' ' + f(hy - r * .8) + 'Q' + f(hx) + ' ' + f(hy - r * 1.02) + ' ' + f(hx - r * .56) + ' ' + f(hy - r * .8) + 'Z" fill="#26262B"/>';
-      if (C.hat === 'topi') hm += '<path d="M' + f(hx - r * .6) + ' ' + f(hy - r * .8) + 'Q' + f(hx) + ' ' + f(hy - r * 1.78) + ' ' + f(hx + r * .6) + ' ' + f(hy - r * .8) + 'Z" fill="' + C.hatC + '" stroke="' + shade(C.hatC, .72) + '"' + st + '/><ellipse cx="' + f(hx + s * r * .12) + '" cy="' + f(hy - r * .8) + '" rx="' + f(r * .84) + '" ry="' + f(r * .11) + '" fill="' + C.hatC + '" stroke="' + shade(C.hatC, .72) + '"' + st + '/>';
-      if (C.bow && c > -.6) { var bw2 = feat(.44, -.8, .45), bx2 = bw2[0], by2 = bw2[1], wing = function (sd) { return '<path d="M' + f(bx2) + ' ' + f(by2) + 'l' + f(sd * 30 * k) + ' ' + f(-17 * k) + 'q' + f(sd * 8 * k) + ' ' + f(17 * k) + ' 0 ' + f(34 * k) + 'Z" fill="' + C.bow + '" stroke="' + shade(C.bow, .75) + '"' + st + '/>'; }; hm += wing(-1) + wing(1) + '<circle cx="' + f(bx2) + '" cy="' + f(by2) + '" r="' + f(9 * k) + '" fill="' + C.bow + '" stroke="' + shade(C.bow, .75) + '"' + st + '/>'; }
+      if (C.bun && c <= -.3) { var bq2 = feat(-.62, .02, -.85); hm += putZ('bun', part('bun', '<circle cx="' + f(bq2[0]) + '" cy="' + f(bq2[1]) + '" r="' + f(24 * k) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>', bq2[0], bq2[1])); }
+      if (C.hair && C.hair.t === 'jambul') hm += putZ('jambul', part('jambul', '<path d="M' + f(hx - s * r * .2 - 6 * k) + ' ' + f(hy - r * .98) + 'q' + f(10 * k + s * 10 * k) + ' ' + f(-22 * k) + ' ' + f(34 * k) + ' ' + f(-20 * k) + 'q' + f(-12 * k) + ' ' + f(8 * k) + ' ' + f(-10 * k) + ' ' + f(22 * k) + 'Z" fill="' + hc + '" stroke="' + hd + '"' + st + '/>', hx, hy - r));
+      if (C.hat === 'peci') hm += putZ('hat', part('hat', '<path d="M' + f(hx - r * .56) + ' ' + f(hy - r * .8) + 'L' + f(hx - r * .52) + ' ' + f(hy - r * 1.36) + 'Q' + f(hx) + ' ' + f(hy - r * 1.46) + ' ' + f(hx + r * .52) + ' ' + f(hy - r * 1.36) + 'L' + f(hx + r * .56) + ' ' + f(hy - r * .8) + 'Q' + f(hx) + ' ' + f(hy - r * 1.02) + ' ' + f(hx - r * .56) + ' ' + f(hy - r * .8) + 'Z" fill="#26262B"/>', hx, hy - r));
+      if (C.hat === 'topi') hm += putZ('hat', part('hat', '<path d="M' + f(hx - r * .6) + ' ' + f(hy - r * .8) + 'Q' + f(hx) + ' ' + f(hy - r * 1.78) + ' ' + f(hx + r * .6) + ' ' + f(hy - r * .8) + 'Z" fill="' + C.hatC + '" stroke="' + shade(C.hatC, .72) + '"' + st + '/><ellipse cx="' + f(hx + s * r * .12) + '" cy="' + f(hy - r * .8) + '" rx="' + f(r * .84) + '" ry="' + f(r * .11) + '" fill="' + C.hatC + '" stroke="' + shade(C.hatC, .72) + '"' + st + '/>', hx, hy - r));
+      if (C.bow && c > -.6) { var bw2 = feat(.44, -.8, .45), bx2 = bw2[0], by2 = bw2[1], wing = function (sd) { return '<path d="M' + f(bx2) + ' ' + f(by2) + 'l' + f(sd * 30 * k) + ' ' + f(-17 * k) + 'q' + f(sd * 8 * k) + ' ' + f(17 * k) + ' 0 ' + f(34 * k) + 'Z" fill="' + C.bow + '" stroke="' + shade(C.bow, .75) + '"' + st + '/>'; }; hm += putZ('bow', part('bow', wing(-1) + wing(1) + '<circle cx="' + f(bx2) + '" cy="' + f(by2) + '" r="' + f(9 * k) + '" fill="' + C.bow + '" stroke="' + shade(C.bow, .75) + '"' + st + '/>', bx2, by2)); }
     }
     if (faceVis) {
       var fcid = 'fc' + o.id; hm += '<clipPath id="' + fcid + '"><circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r - 2) + '"/></clipPath>'; var hmKeep = hm; hm = '';
@@ -447,6 +478,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       hm = hmKeep + '<g clip-path="url(#' + fcid + ')">' + hm + '</g>';
     }
     s = S0; c = C0;
+    hm = hm.replace('<!--B-->', backExtra) + headTop;
     var head = '<g transform="rotate(' + f((pose.tilt || 0) * (Math.abs(s) > .3 ? 1 : .4)) + ' ' + f(hx) + ' ' + f(bodyTop) + ')">' + hm + '</g>';
     var prop = pose.prop === 'bangku' ? '<path d="M' + f(cx - 52 * k) + ' ' + f(gy - legD - 2 * k) + 'h' + f(104 * k) + 'v' + f(12 * k) + 'h' + f(-104 * k) + 'zM' + f(cx - 42 * k) + ' ' + f(gy - legD + 10 * k) + 'v' + f(legD - 10 * k) + 'M' + f(cx + 42 * k) + ' ' + f(gy - legD + 10 * k) + 'v' + f(legD - 10 * k) + '" fill="#C9935A" stroke="#9A6A3A" stroke-width="5" stroke-linejoin="round"/>' : '';
     var upper = '<g transform="rotate(' + f((pose.lean || 0) * s) + ' ' + f(cx + pose.x) + ' ' + f(hipY) + ')">' + back + body + head + front + '</g>';
@@ -504,7 +536,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     var box = $('views'); box.textContent = '';
     VIEWS.forEach(function (v) {
       var b = document.createElement('button'); b.type = 'button'; b.dataset.k = v[0]; b.setAttribute('aria-pressed', String(v[0] === vkey));
-      b.innerHTML = '<svg viewBox="-70 -138 540 621" aria-hidden="true">' + draw(rest(), v[2], { cx: 200, gy: 408, id: 't' + v[0], scale: fitScale(1.62) }) + '</svg><span>' + v[1] + '</span>';
+      b.innerHTML = '<svg viewBox="-70 -138 540 621" aria-hidden="true">' + draw(rest(), v[2], { cx: 200, gy: 408, id: 't' + v[0], scale: fitScale(1.62), view: v[0] }) + '</svg><span>' + v[1] + '</span>';
       b.onclick = function () { vkey = v[0]; thumbs(); }; box.appendChild(b);
     });
   }
@@ -530,6 +562,27 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
   fill('o-size', SIZES, 'size'); fill('o-skin', SKINS, 'skin'); fill('o-hair', HAIRS, 'hair'); fill('o-hairc', HAIRC, 'hairc'); fill('o-shape', SHAPES, 'shape'); fill('o-cloth', CLOTH, 'cloth'); fill('o-shoe', SHOES, 'shoe');
   $('pause').onclick = function () { paused = !paused; if (paused) pausedAt = performance.now(); else t0 += performance.now() - pausedAt; this.textContent = paused ? 'Putar' : 'Jeda'; this.setAttribute('aria-pressed', String(paused)); };
   window.g3 = function (a, v, t, m, e) { mood = m || 'netral'; if (e) expr = e; act = a; vkey = v; paused = true; t0 = 0; pausedAt = t * 1000; thumbs(); };
+  function ptScope() { return $('p-view').checked ? vkey : 'all'; }
+  function ptGet(make) { var ck = look.cast || '_', sc = ptScope(), A = TW[ck]; if (!A) { if (!make) return null; A = TW[ck] = {}; } if (!A[sc]) { if (!make) return (A.all && A.all[PT.part]) || null; A[sc] = {}; } if (!A[sc][PT.part]) { if (!make) return (sc !== 'all' && A.all && A.all[PT.part]) || null; var base = (sc !== 'all' && A.all && A.all[PT.part]) || { rot: 0, dx: 0, dy: 0, sc: 1, z: 'auto', hide: false }; A[sc][PT.part] = JSON.parse(JSON.stringify(base)); } return A[sc][PT.part]; }
+  function ptSave() { try { localStorage.setItem(TKEY, JSON.stringify(TW)); } catch (e) {} thumbs(); }
+  function ptSync() { var t = ptGet(false) || { rot: 0, dx: 0, dy: 0, sc: 1, z: 'auto', hide: false }; $('p-part').value = PT.part; $('p-rot').value = t.rot || 0; $('p-rotv').textContent = Math.round(t.rot || 0) + '°'; $('p-dx').value = t.dx || 0; $('p-dy').value = t.dy || 0; $('p-sc').value = Math.round((t.sc || 1) * 100); $('p-scv').textContent = Math.round((t.sc || 1) * 100) + '%'; $('p-z').value = t.z || 'auto'; $('p-hide').checked = !!t.hide; }
+  (function () { var e = $('p-part'); Object.keys(PNAMES).forEach(function (k2) { var o = document.createElement('option'); o.value = k2; o.textContent = PNAMES[k2]; e.appendChild(o); }); })();
+  $('ptToggle').onclick = function () { PT.on = !PT.on; this.setAttribute('aria-pressed', String(PT.on)); this.textContent = PT.on ? 'Selesai mengedit bagian' : 'Edit bagian'; $('ptBody').hidden = !PT.on; if (PT.on) { if (ED.on) setEdit(false); ptSync(); $('ptMsg').textContent = 'Ketuk bagian di panggung untuk memilihnya, seret untuk menggeser. Putar, ukuran, dan lapisan diatur di sini.'; } };
+  $('p-part').onchange = function () { PT.part = this.value; ptSync(); };
+  $('p-view').onchange = ptSync;
+  $('p-rot').oninput = function () { ptGet(true).rot = Number(this.value); $('p-rotv').textContent = this.value + '°'; ptSave(); };
+  $('p-dx').oninput = function () { ptGet(true).dx = Number(this.value); ptSave(); }; $('p-dy').oninput = function () { ptGet(true).dy = Number(this.value); ptSave(); };
+  $('p-sc').oninput = function () { ptGet(true).sc = Number(this.value) / 100; $('p-scv').textContent = this.value + '%'; ptSave(); };
+  $('p-z').onchange = function () { ptGet(true).z = this.value; ptSave(); };
+  $('p-hide').onchange = function () { ptGet(true).hide = this.checked; ptSave(); };
+  $('ptReset').onclick = function () { var A = TW[look.cast || '_']; if (A) Object.keys(A).forEach(function (sc) { delete A[sc][PT.part]; }); ptSave(); ptSync(); $('ptMsg').textContent = PNAMES[PT.part] + ' kembali ke asal di semua tampak.'; };
+  $('ptResetAll').onclick = function () { delete TW[look.cast || '_']; ptSave(); ptSync(); $('ptMsg').textContent = 'Semua bagian tokoh ini kembali ke asal.'; };
+  $('ptCopy').onclick = function () { var tx = $('ptCode'); tx.hidden = false; tx.value = JSON.stringify({ tokoh: look.cast || 'manusia', bagian: TW[look.cast || '_'] || {} }); tx.focus(); tx.select(); var done = function (m) { $('ptMsg').textContent = m; }; if (navigator.clipboard) navigator.clipboard.writeText(tx.value).then(function () { done('Kode bagian disalin. Tempel ke chat supaya dijadikan bentuk tetap tokoh ini.'); }, function () { done('Salin teks di kotak ini secara manual.'); }); else done('Salin teks di kotak ini secara manual.'); };
+  (function () { var stg = $('stage');
+    stg.addEventListener('pointerdown', function (e) { if (!PT.on) return; var g = e.target.closest ? e.target.closest('[data-part]') : null; if (!g) return; PT.part = g.getAttribute('data-part'); var t = ptGet(true), q = svgPt(e); PT.drag = { x: q[0], y: q[1], dx: t.dx || 0, dy: t.dy || 0 }; ptSync(); stg.setPointerCapture(e.pointerId); e.preventDefault(); $('ptMsg').textContent = 'Terpilih: ' + PNAMES[PT.part] + '.'; });
+    stg.addEventListener('pointermove', function (e) { if (!PT.drag) return; var q = svgPt(e), t = ptGet(true); t.dx = Math.round(Math.max(-80, Math.min(80, PT.drag.dx + (q[0] - PT.drag.x) / PT.k))); t.dy = Math.round(Math.max(-80, Math.min(80, PT.drag.dy + (q[1] - PT.drag.y) / PT.k))); $('p-dx').value = t.dx; $('p-dy').value = t.dy; });
+    var end = function () { if (PT.drag) { PT.drag = null; ptSave(); } }; stg.addEventListener('pointerup', end); stg.addEventListener('pointercancel', end); })();
+  window.g3parts = function () { return { TW: TW, PT: PT }; };
   $('edToggle').onclick = function () { setEdit(!ED.on); };
   $('e-part').onchange = function () { ED.part = this.value; syncSliders(); };
   [['e-u0', 0], ['e-u1', 1], ['e-f0', 2], ['e-f1', 3]].forEach(function (d) { $(d[0]).oninput = function () { ED.pose[ED.part][d[1]] = Number(this.value); $(d[0] + 'v').textContent = this.value + '°'; }; });
@@ -553,7 +606,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       var a = ED.pose[ED.drag.k], j = (ED.drag.i - 1) * 2; a[j] = rho; a[j + 1] = eta; syncSliders(); });
     var end = function () { ED.drag = null; }; stg.addEventListener('pointerup', end); stg.addEventListener('pointercancel', end); stg.style.touchAction = 'none'; })();
   window.g3edit = function () { return ED; };
-  window.g3render = function (cst, a2, m2, v2, t) { look.cast = cst; act = a2; mood = m2 || 'netral'; var yaw = 0; VIEWS.forEach(function (v) { if (v[0] === v2) yaw = v[2]; }); var p = poseAt(t); return { pose: p, svg: draw(p, yaw, { cx: 200, gy: 408, id: 'x', scale: fitScale(1.62), t: t }) }; };
+  window.g3render = function (cst, a2, m2, v2, t) { look.cast = cst; act = a2; mood = m2 || 'netral'; var yaw = 0; VIEWS.forEach(function (v) { if (v[0] === v2) yaw = v[2]; }); var p = poseAt(t); return { pose: p, svg: draw(p, yaw, { cx: 200, gy: 408, id: 'x', scale: fitScale(1.62), t: t, view: v2 }) }; };
   window.g3lists = function () { return { acts: Object.keys(ACTS), moods: Object.keys(MOODS), cast: [''].concat(Object.keys(CAST)), views: VIEWS.map(function (v) { return v[0]; }) }; };
   thumbs(); requestAnimationFrame(frame);
 })();
