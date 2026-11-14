@@ -112,6 +112,24 @@ Faces available: netral, senang, tertawa, kedip, malu, bingung, bosan, mengantuk
 sedih, menangis, takut, kaget, marah, terpejam. Extra actions: menunjuk, tepuk tangan,
 mengangguk, menggeleng (head yaw offset), tidak tahu (shrug), tidur.
 
+## 6b. Series cast (director's own character sheets, 02-14)
+
+`reference/studio-gaya3.html` holds the cast as data in `CAST` and draws them with the same
+rig, so every action, mood and face works on every character. One entry = species parts +
+outfit: `fur`, `line`, `limb`, `muzzle`, `ears` (kucing, kelinci, rusa, kerbau), `stripes`,
+`spots`, `whisk`, `antler`, `horn`, `beak`, `hair`, `bun`, `hijab`, `hat` (peci, topi),
+`glasses`, `kumis`, `bow`, `tail` (kucing, kadal, kerbau, rusa, ayam), `top` (colour, sleeve,
+detail: dasi, batik, kancing, koko, kebaya, rompi, kerah, polos) and `bottom` (rok,
+rokpanjang, celana, celanapendek, celemek, optional motif).
+
+Cast: 02 Nisa, 03 Pak Arif, 04 Bu Rani (cats); 05 Kakek Hadi, 14 Bayu (deer); 06 Nenek Sari,
+07 Pak Bima, 08 Bu Maya, 09 Lala (rabbits); 10 Pak Joko, 11 Tobi (lizards); 12 Kak Raka
+(chick); 13 Pak Wawan (buffalo). Sheet 01 has not been supplied yet.
+
+To add a character: add one `CAST` entry; do not write new drawing code unless the sheet
+needs a part that does not exist yet. Adults use body factor 1.22; children 1.0; the head
+radius stays the same so the head-to-body ratio matches the sheets.
+
 ## 7. Checklist before calling an animation done
 
 - [ ] Mode chosen (reference or 12 principles) and stated to the director.

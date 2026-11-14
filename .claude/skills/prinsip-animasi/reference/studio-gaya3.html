@@ -32,7 +32,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
 <div class="wrap">
   <div class="eyebrow">Gaya 3 · garis berwarna</div>
   <h1>Studio Gaya 3</h1>
-  <p class="lede">Karakter dasar gaya garis berwarna dengan tungkai lidi. Pilih tampak, aksi, dan ekspresi. Centang "12 prinsip animasi" untuk gerak yang lebih hidup (ancang-ancang, remas-regang, tindak lanjut, lambat di awal dan akhir). Matikan untuk gerak kaku seperti dua video acuan.</p>
+  <p class="lede">Tokoh serial dan karakter dasar gaya garis berwarna dengan tungkai lidi. Pilih tokoh, tampak, aksi, suasana hati, dan ekspresi. Centang "12 prinsip animasi" untuk gerak yang lebih hidup (ancang-ancang, remas-regang, tindak lanjut, lambat di awal dan akhir). Matikan untuk gerak kaku seperti dua video acuan.</p>
   <div class="grid">
     <div class="stagebox">
       <svg id="stage" viewBox="0 0 400 460" role="img" aria-label="Panggung karakter"></svg>
@@ -51,6 +51,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       <div class="sec"><span class="label">Ekspresi</span><div class="row" id="exprs"></div><p class="hint">Wajah saja. Dipakai bila suasana hati Netral dan aksinya tidak membawa wajah sendiri.</p></div>
       <div class="sec"><span class="label">Karakter</span>
         <div class="opts">
+          <label for="o-cast">Tokoh</label><select id="o-cast"></select>
           <label for="o-size">Usia</label><select id="o-size"></select>
           <label for="o-skin">Kulit</label><select id="o-skin"></select>
           <label for="o-hair">Rambut</label><div class="row"><select id="o-hair"></select><select id="o-hairc" aria-label="Warna rambut"></select></div>
@@ -73,7 +74,25 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
   var HAIRS = { botak: 'Botak', poni: 'Poni', kuncir: 'Kuncir dua', jabrik: 'Jabrik' };
   var SHAPES = { gaun: 'Gaun lonceng', kaus: 'Kaus dan celana' };
   var SIZES = { anak: ['Anak', .82, 1], balita: ['Balita', .66, .82], dewasa: ['Dewasa', 1.06, 1.5] };
-  var look = { size: 'anak', skin: '#F9D2B0', hair: 'poni', hairc: '#3B2A20', shape: 'gaun', cloth: '#F25C54', shoe: '#2B2B33' };
+
+  /* ---------- tokoh serial (lembar karakter sutradara) ---------- */
+  var OR = '#FBB85C', LN = '#B8915F', CR = '#FDEBD3';
+  var CAST = {
+    nisa: { n: '02 Nisa', size: 'anak', fur: OR, line: LN, muzzle: CR, stripes: '#E8871E', whisk: 1, ears: 'kucing', bow: '#E03131', tail: 'kucing', tailC: '#F0932B', top: { c: '#FFFFFF', line: '#C4C4C8', d: 'dasi', c2: '#E03131' }, bottom: { t: 'rok', c: '#D92B2B' } },
+    arif: { n: '03 Pak Arif', size: 'dewasa', fur: OR, line: LN, muzzle: CR, stripes: '#E8871E', whisk: 1, ears: 'kucing', tail: 'kucing', tailC: '#F0932B', top: { c: '#FBB040', line: '#B9772A', d: 'batik', c2: '#9A5A2A' }, bottom: { t: 'celana', c: '#5A382F' } },
+    rani: { n: '04 Bu Rani', size: 'dewasa', fur: '#FDF0D5', line: LN, limb: '#FBE3B5', whisk: 1, ears: 'kucing', earC: OR, hair: { t: 'poni', c: '#FBB040' }, tail: 'kucing', tailC: '#F0932B', top: { c: '#D6A8DC', line: '#A77BB5', d: 'kancing', c2: '#9A6BB0' }, bottom: { t: 'rokpanjang', c: '#6A4576', m: 'wajik', mc: '#D6A8DC' } },
+    hadi: { n: '05 Kakek Hadi', size: 'dewasa', fur: '#E89B4C', line: '#9C6B3F', muzzle: CR, nose: '#8A5A3A', ears: 'rusa', earIn: '#FCD2A6', antler: '#9A6A3A', hat: 'peci', kumis: 1, top: { c: '#FBF3D9', line: '#C9B27E', d: 'koko', c2: '#9A6A3A', sleeve: 'panjang' }, bottom: { t: 'celana', c: '#3A5F3A' } },
+    sari: { n: '06 Nenek Sari', size: 'dewasa', fur: '#F6ECE0', line: '#8F8580', limb: '#A79C96', nose: '#EFA3A3', ears: 'kelinci', hair: { t: 'poni', c: '#CFC7C4' }, bun: 1, glasses: 1, top: { c: '#FF9EBB', line: '#D4688A', d: 'kebaya' }, bottom: { t: 'rokpanjang', c: '#B8791F', m: 'emas', mc: '#F7B733' } },
+    bima: { n: '07 Pak Bima', size: 'dewasa', fur: '#FFFFFF', line: '#9A8F86', limb: '#CFC6BD', ears: 'kelinci', glasses: 1, top: { c: '#FBEFC4', line: '#C9B27E', d: 'kancing', c2: '#C9A56A' }, bottom: { t: 'celana', c: '#2F4275' } },
+    maya: { n: '08 Bu Maya', size: 'dewasa', fur: '#FDF3E0', line: '#A08A78', limb: '#F3D9B0', ears: 'kelinci', earC: '#FFFDF8', hijab: '#A9C8F5', top: { c: '#7FA3E0', line: '#5C7FC0', d: 'polos', sleeve: 'panjang' }, bottom: { t: 'rokpanjang', c: '#2E3D74' } },
+    lala: { n: '09 Lala', size: 'anak', fur: '#FAF6F4', line: '#B79F88', limb: OR, ears: 'kelinci', top: { c: '#FFE066', line: '#E0B93B', d: 'polos' }, bottom: { t: 'rok', c: '#5B84BE' } },
+    joko: { n: '10 Pak Joko', size: 'dewasa', fur: '#E3E84A', line: '#B59A6B', limb: '#D6DC3A', spots: '#7FB23A', nose: '#E09080', hair: { t: 'poni', c: '#B0694A' }, tail: 'kadal', tailC: '#D6DC3A', top: { c: '#FDF1D8', line: '#C9B27E', d: 'kerah' }, bottom: { t: 'celemek', c: '#B0694A', c2: '#6A4030' } },
+    tobi: { n: '11 Tobi', size: 'anak', fur: '#E3E84A', line: '#9AA83A', limb: '#C8D232', spots: '#8FAE2A', nose: '#D08A6A', tail: 'kadal', tailC: '#B9C83A', top: { c: '#4F7FD6', line: '#3A62B0', d: 'polos' }, bottom: { t: 'celanapendek', c: '#FFD21F' } },
+    raka: { n: '12 Kak Raka', size: 'dewasa', fur: '#FFD84A', line: LN, beak: '#FF8A1F', cheekS: '#8A5A3A', hair: { t: 'jambul', c: '#845A3F' }, tail: 'ayam', tailC: '#FFD84A', top: { c: '#6AA63F', line: '#4E8230', d: 'rompi', c2: '#4A4A4A' }, bottom: { t: 'celana', c: '#4A4A4A' } },
+    wawan: { n: '13 Pak Wawan', size: 'dewasa', fur: '#807887', line: '#55505A', muzzle: '#BFB0A6', snout: 1, ears: 'kerbau', horn: '#F1E6CC', hat: 'topi', hatC: OR, tail: 'kerbau', top: { c: '#FFFFFF', line: '#B4B4BA', d: 'kerah' }, bottom: { t: 'celanapendek', c: '#9A5F3C' } },
+    bayu: { n: '14 Bayu', size: 'anak', fur: '#F2AC5E', line: '#B8875A', muzzle: CR, ears: 'rusa', antler: '#A86B33', tail: 'rusa', top: { c: '#E63B35', line: '#B92C28', d: 'polos' }, bottom: { t: 'celanapendek', c: '#2F3F6B' } }
+  };
+  var look = { cast: 'nisa', size: 'anak', skin: '#F9D2B0', hair: 'poni', hairc: '#3B2A20', shape: 'gaun', cloth: '#F25C54', shoe: '#2B2B33' };
   function shade(hex, k) { var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255; function c(v) { return Math.max(0, Math.min(255, Math.round(v * k))); } return '#' + ((1 << 24) + (c(r) << 16) + (c(g) << 8) + c(b)).toString(16).slice(1); }
   function f(v) { return (Math.round(v * 10) / 10).toString(); }
   var D2R = Math.PI / 180;
@@ -225,9 +244,11 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
 
   /* ---------- gambar karakter ---------- */
   function draw(pose, yaw, o) {
-    var S = SIZES[look.size], k = S[1] * (o.scale || 1), bodyK = S[2], flip = o.flip ? -1 : 1;
+    var S = SIZES[(look.cast && CAST[look.cast] ? CAST[look.cast].size : look.size)], k = S[1] * (o.scale || 1), bodyK = look.cast && CAST[look.cast] ? (CAST[look.cast].size === 'dewasa' ? 1.22 : 1) : S[2], flip = o.flip ? -1 : 1;
     var c = Math.cos(yaw * D2R), s = Math.sin(yaw * D2R), cx = o.cx, gy = o.gy;
-    var skin = look.skin, sl = shade(skin, .8), cl = look.cloth, cd = shade(cl, cl === '#FFFFFF' ? .78 : .76), shoe = look.shoe, hc = look.hairc, hd = shade(hc, .7);
+    var C = look.cast && CAST[look.cast] || null;
+    var skin = C ? C.fur : look.skin, sl = C ? (C.line || shade(skin, .75)) : shade(skin, .8), lc = C ? (C.limb || C.fur) : sl, cl = C ? C.top.c : look.cloth, cd = C ? (C.top.line || shade(cl, .76)) : shade(cl, cl === '#FFFFFF' ? .78 : .76), shoe = C ? '#1E1E24' : look.shoe, hc = C ? (C.hair ? C.hair.c : '#000000') : look.hairc, hd = shade(hc, .72);
+    var hairOn = C ? !!C.hair : look.hair !== 'botak', bt = C ? C.bottom : null, bc = bt ? bt.c : '', bd = bt ? shade(bt.c, .72) : '';
     var legU = 22 * k * bodyK, legD = 22 * k * bodyK, bodyH = 76 * k * bodyK, tw = 21 * k, bw = 36 * k * (bodyK > 1.2 ? 1.12 : 1), r = 62 * k, armU = 25 * k * (bodyK > 1.2 ? 1.25 : 1), armD = 23 * k * (bodyK > 1.2 ? 1.25 : 1), lw = 5;
     var sit = pose.sit || 0, hipY = gy - 7 * k - (legU + legD) + Math.min(1, sit) * legU + Math.max(0, sit - 1) * (legD - 3 * k) + pose.y, bodyTop = hipY - bodyH + 6 * k, headY = bodyTop - r * .8 + (pose.hdy || 0) * k;
     function pr(X, Y, Z) { return [cx + pose.x + (X * c + Z * s), Y, Z * c - X * s]; }
@@ -239,8 +260,12 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     var back = '', front = '', legs = '';
     /* kaki: selalu di bawah badan */
     [['lL', -1], ['lR', 1]].map(function (d) { var ch = chain([d[1] * 13 * k, hipY, 0], pose[d[0]], d[1], legU, legD); ch.side = d[1]; return ch; }).sort(function (a, b) { return a[2][2] - b[2][2]; }).forEach(function (ch) {
-      var an = ch[2], ft = [an[0] + 8 * k * s + ch.side * 3 * k * c, an[1] + 4 * k], legCol = look.shape === 'kaus' ? cd : sl;
+      var an = ch[2], ft = [an[0] + 8 * k * s + ch.side * 3 * k * c, an[1] + 4 * k], legCol = C ? lc : (look.shape === 'kaus' ? cd : sl);
       legs += line([ch[0], ch[1], ch[2]], legCol);
+      if (bt && (bt.t === 'celana' || bt.t === 'celemek' || bt.t === 'celanapendek')) {
+        var pc = bt.t === 'celemek' ? bt.c2 : bc, sh = bt.t === 'celanapendek', e1 = sh ? [ch[0][0] + (ch[1][0] - ch[0][0]) * .8, ch[0][1] + (ch[1][1] - ch[0][1]) * .8] : ch[1], e2 = [ch[1][0] + (ch[2][0] - ch[1][0]) * .86, ch[1][1] + (ch[2][1] - ch[1][1]) * .86];
+        legs += '<path d="M' + f(ch[0][0]) + ' ' + f(ch[0][1]) + 'L' + f(e1[0]) + ' ' + f(e1[1]) + (sh ? '' : 'L' + f(e2[0]) + ' ' + f(e2[1])) + '" fill="none" stroke="' + pc + '" stroke-width="' + f(19 * k) + '" stroke-linecap="butt" stroke-linejoin="round"/>';
+      }
       var sw = Math.atan2(ch[2][0] - ch[1][0], Math.max(1, ch[2][1] - ch[1][1])) / D2R, up = ch[2][1] - ch[0][1] < legD * .6, fr = up ? -78 * (s >= 0 ? 1 : -1) * Math.abs(s) : -sw * .8;
       if (up) ft = [an[0] + 3 * k * s, an[1] - 5 * k];
       legs += '<ellipse transform="rotate(' + f(fr) + ' ' + f(ft[0]) + ' ' + f(ft[1]) + ')" cx="' + f(ft[0]) + '" cy="' + f(ft[1]) + '" rx="' + f((10 + 6 * Math.abs(s)) * k) + '" ry="' + f(6 * k) + '" fill="' + (shoe || skin) + '"' + (shoe ? '' : ' stroke="' + sl + '"' + st) + '/>';
@@ -249,29 +274,93 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     [['aL', -1], ['aR', 1]].forEach(function (d) {
       var ch = chain([d[1] * (tw - 1 * k), bodyTop + 16 * k, 0], pose[d[0]], d[1], armU, armD), h = ch[2], e = ch[1], dx = h[0] - e[0], dy = h[1] - e[1], n = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / n, uy = dy / n, m = '';
       if (n < 3) { ux = 0; uy = 1; }
-      m += line([ch[0], ch[1], ch[2]], sl);
-      [-38, 0, 38].forEach(function (a) { var ca = Math.cos(a * D2R), sa = Math.sin(a * D2R), fx = ux * ca - uy * sa, fy = ux * sa + uy * ca; m += line([h, [h[0] + fx * 8 * k, h[1] + fy * 8 * k]], sl); });
+      m += line([ch[0], ch[1], ch[2]], lc);
+      if (C) { var lg = C.top.sleeve === 'panjang', se = lg ? [ch[1][0] + (ch[2][0] - ch[1][0]) * .8, ch[1][1] + (ch[2][1] - ch[1][1]) * .8] : [ch[0][0] + (ch[1][0] - ch[0][0]) * .5, ch[0][1] + (ch[1][1] - ch[0][1]) * .5], sd2 = 'M' + f(ch[0][0]) + ' ' + f(ch[0][1]) + (lg ? 'L' + f(ch[1][0]) + ' ' + f(ch[1][1]) : '') + 'L' + f(se[0]) + ' ' + f(se[1]);
+        m += '<path d="' + sd2 + '" fill="none" stroke="' + cd + '" stroke-width="' + f((lg ? 12 : 16) * k) + '" stroke-linecap="butt" stroke-linejoin="round"/><path d="' + sd2 + '" fill="none" stroke="' + cl + '" stroke-width="' + f((lg ? 12 : 16) * k - 5) + '" stroke-linecap="butt" stroke-linejoin="round"/>'; }
+      [-38, 0, 38].forEach(function (a) { var ca = Math.cos(a * D2R), sa = Math.sin(a * D2R), fx = ux * ca - uy * sa, fy = ux * sa + uy * ca; m += line([h, [h[0] + fx * 8 * k, h[1] + fy * 8 * k]], lc); });
       if ((ch[1][2] + ch[2][2]) / 2 > 6 * k) front += m; else back += m;
     });
     /* badan */
-    var twv = tw, bwv = bw, bx = cx + pose.x, by = hipY + 4 * k, body;
-    body = '<path d="M' + f(bx - twv) + ' ' + f(bodyTop) + 'Q' + f(bx) + ' ' + f(bodyTop - 7 * k) + ' ' + f(bx + twv) + ' ' + f(bodyTop) + 'L' + f(bx + bwv) + ' ' + f(by) + 'Q' + f(bx) + ' ' + f(by + 8 * k) + ' ' + f(bx - bwv) + ' ' + f(by) + 'Z" fill="' + cl + '" stroke="' + cd + '"' + st + '/>';
-    if (look.shape === 'kaus') { var wy = bodyTop + (by - bodyTop) * .62, wx = twv + (bwv - twv) * .62; body += '<path d="M' + f(bx - wx) + ' ' + f(wy) + 'L' + f(bx + wx) + ' ' + f(wy) + 'L' + f(bx + bwv) + ' ' + f(by) + 'Q' + f(bx) + ' ' + f(by + 8 * k) + ' ' + f(bx - bwv) + ' ' + f(by) + 'Z" fill="' + shade(cl, .62) + '" stroke="' + shade(cl, .46) + '"' + st + '/>'; }
+    var twv = tw, bwv = bw, bx = cx + pose.x, by = hipY + 4 * k, body, C0b = c;
+    if (!C) {
+      body = '<path d="M' + f(bx - twv) + ' ' + f(bodyTop) + 'Q' + f(bx) + ' ' + f(bodyTop - 7 * k) + ' ' + f(bx + twv) + ' ' + f(bodyTop) + 'L' + f(bx + bwv) + ' ' + f(by) + 'Q' + f(bx) + ' ' + f(by + 8 * k) + ' ' + f(bx - bwv) + ' ' + f(by) + 'Z" fill="' + cl + '" stroke="' + cd + '"' + st + '/>';
+      if (look.shape === 'kaus') { var wy = bodyTop + (by - bodyTop) * .62, wx = twv + (bwv - twv) * .62; body += '<path d="M' + f(bx - wx) + ' ' + f(wy) + 'L' + f(bx + wx) + ' ' + f(wy) + 'L' + f(bx + bwv) + ' ' + f(by) + 'Q' + f(bx) + ' ' + f(by + 8 * k) + ' ' + f(bx - bwv) + ' ' + f(by) + 'Z" fill="' + shade(cl, .62) + '" stroke="' + shade(cl, .46) + '"' + st + '/>'; }
+    } else {
+      var wy2 = bodyTop + (by - bodyTop) * .6, wx2 = twv + (bwv - twv) * .5, frontV = C0b > .3, D = C.top.d || '', P4 = function (x, y, w, h, col) { return '<path d="M' + f(x) + ' ' + f(y - h) + 'L' + f(x + w) + ' ' + f(y) + 'L' + f(x) + ' ' + f(y + h) + 'L' + f(x - w) + ' ' + f(y) + 'Z" fill="' + col + '"/>'; };
+      body = '';
+      /* ekor */
+      var dT = C0b >= -.3 ? -1 : 1, tl = '', tcol = C.tailC || lc, tx = bx + dT * bwv * (C.tail === 'ayam' ? .9 : .5), ty = hipY - 4 * k;
+      if (C.tail === 'kucing' || C.tail === 'kadal' || C.tail === 'kerbau') tl = '<path d="M' + f(tx) + ' ' + f(ty) + 'q' + f(dT * 24 * k) + ' ' + f(12 * k) + ' ' + f(dT * 40 * k) + ' ' + f(-16 * k) + '" fill="none" stroke="' + tcol + '" stroke-width="' + f((C.tail === 'kerbau' ? 4.5 : C.tail === 'kadal' ? 9 : 7.5) * k) + '" stroke-linecap="round"/>';
+      else if (C.tail === 'rusa') tl = '<ellipse cx="' + f(tx + dT * 12 * k) + '" cy="' + f(ty - 2 * k) + '" rx="' + f(9 * k) + '" ry="' + f(13 * k) + '" transform="rotate(' + f(dT * 35) + ' ' + f(tx + dT * 12 * k) + ' ' + f(ty) + ')" fill="' + tcol + '"/>';
+      else if (C.tail === 'ayam') [-28, 0, 28].forEach(function (a) { tl += '<ellipse cx="' + f(tx + dT * 22 * k) + '" cy="' + f(ty + 4 * k) + '" rx="' + f(20 * k) + '" ry="' + f(8 * k) + '" transform="rotate(' + f(a * dT + (dT < 0 ? 180 : 0) - dT * 10) + ' ' + f(tx) + ' ' + f(ty + 4 * k) + ')" fill="' + tcol + '" stroke="' + shade(tcol, .78) + '" stroke-width="3"/>'; });
+      var tailFront = C0b < -.3; if (!tailFront) body += tl;
+      /* bawahan */
+      var hemY = by + 2 * k, hw = bwv * 1.04, bot = '';
+      if (bt.t === 'rokpanjang') { hemY = hipY + (legU + legD) * .78; hw = bwv * .98; }
+      if (bt.t === 'rok' || bt.t === 'rokpanjang') {
+        bot = '<path d="M' + f(bx - wx2) + ' ' + f(wy2) + 'L' + f(bx + wx2) + ' ' + f(wy2) + 'L' + f(bx + hw) + ' ' + f(hemY) + 'Q' + f(bx) + ' ' + f(hemY + 6 * k) + ' ' + f(bx - hw) + ' ' + f(hemY) + 'Z" fill="' + bc + '" stroke="' + bd + '"' + st + '/>';
+        if (bt.m && Math.abs(C0b) > .3) { var my2 = (wy2 + hemY) / 2 + 4 * k; if (bt.m === 'wajik') [-1, 0, 1].forEach(function (i2) { bot += '<path d="M' + f(bx + i2 * 20 * k) + ' ' + f(my2 - 9 * k) + 'l' + f(6 * k) + ' ' + f(9 * k) + 'l' + f(-6 * k) + ' ' + f(9 * k) + 'l' + f(-6 * k) + ' ' + f(-9 * k) + 'Z" fill="none" stroke="' + bt.mc + '" stroke-width="3"/>'; });
+          else for (var ry2 = -1; ry2 <= 1; ry2++) for (var cx2 = -1; cx2 <= 1; cx2++) bot += P4(bx + cx2 * 19 * k + (ry2 ? 0 : 9 * k) - (ry2 ? 0 : 9 * k), my2 + ry2 * 20 * k, 7 * k, 7 * k, bt.mc) + P4(bx + cx2 * 19 * k, my2 + ry2 * 20 * k, 3 * k, 3 * k, bc); }
+      } else {
+        var hb = hipY + 7 * k; bot = '<path d="M' + f(bx - wx2) + ' ' + f(wy2) + 'L' + f(bx + wx2) + ' ' + f(wy2) + 'L' + f(bx + wx2 + 2 * k) + ' ' + f(hb) + 'L' + f(bx - wx2 - 2 * k) + ' ' + f(hb) + 'Z" fill="' + (bt.t === 'celemek' ? bt.c2 : bc) + '"/>';
+        if (bt.t === 'celemek') { var ah = hipY + legU * .7; bot += '<path d="M' + f(bx - wx2 - 1 * k) + ' ' + f(wy2) + 'L' + f(bx + wx2 + 1 * k) + ' ' + f(wy2) + 'L' + f(bx + wx2 + 5 * k) + ' ' + f(ah) + 'L' + f(bx - wx2 - 5 * k) + ' ' + f(ah) + 'Z" fill="' + bc + '" stroke="' + bd + '"' + st + '/>' + (frontV ? '<path d="M' + f(bx - 12 * k) + ' ' + f(wy2 + 10 * k) + 'h' + f(24 * k) + 'q0 ' + f(18 * k) + ' ' + f(-12 * k) + ' ' + f(18 * k) + 'q' + f(-12 * k) + ' 0 ' + f(-12 * k) + ' ' + f(-18 * k) + 'Z" fill="none" stroke="' + bd + '" stroke-width="3.5"/>' : ''); }
+      }
+      body += bot;
+      /* atasan */
+      body += '<path d="M' + f(bx - twv) + ' ' + f(bodyTop) + 'Q' + f(bx) + ' ' + f(bodyTop - 6 * k) + ' ' + f(bx + twv) + ' ' + f(bodyTop) + 'L' + f(bx + wx2 + 2 * k) + ' ' + f(wy2 + 2 * k) + 'Q' + f(bx) + ' ' + f(wy2 + 6 * k) + ' ' + f(bx - wx2 - 2 * k) + ' ' + f(wy2 + 2 * k) + 'Z" fill="' + cl + '" stroke="' + cd + '"' + st + '/>';
+      if (frontV) {
+        var ty0 = bodyTop + 3 * k, mid = (bodyTop + wy2) / 2 + 4 * k, thin = '" fill="none" stroke="' + cd + '" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
+        if (D === 'rompi') body += '<path d="M' + f(bx - 7 * k) + ' ' + f(bodyTop - 2 * k) + 'h' + f(14 * k) + 'L' + f(bx + 8 * k) + ' ' + f(wy2 + 3 * k) + 'h' + f(-16 * k) + 'Z" fill="' + C.top.c2 + '"/><path d="M' + f(bx + 9 * k) + ' ' + f(mid - 8 * k) + 'h' + f(14 * k) + '" stroke="#FFFFFF" stroke-width="' + f(5 * k) + '" fill="none"/>';
+        if (D === 'dasi') body += '<path d="M' + f(bx - 5 * k) + ' ' + f(ty0) + 'h' + f(10 * k) + 'l' + f(3 * k) + ' ' + f(26 * k) + 'l' + f(-8 * k) + ' ' + f(10 * k) + 'l' + f(-8 * k) + ' ' + f(-10 * k) + 'Z" fill="' + C.top.c2 + '"/>';
+        if (D === 'batik') [-1, 0, 1].forEach(function (i3) { body += P4(bx + i3 * 15 * k, mid + (i3 ? 6 * k : 0), 7 * k, 11 * k, C.top.c2); });
+        if (D === 'kancing' || D === 'koko') [0, 1, 2].slice(0, D === 'koko' ? 2 : 3).forEach(function (i4) { body += '<circle cx="' + f(bx) + '" cy="' + f(mid - 8 * k + i4 * 11 * k) + '" r="' + f(2.6 * k) + '" fill="' + (C.top.c2 || cd) + '"/>'; });
+        if (D === 'kebaya') body += '<path d="M' + f(bx - 10 * k) + ' ' + f(bodyTop) + 'L' + f(bx + 4 * k) + ' ' + f(mid) + 'L' + f(bx - 2 * k) + ' ' + f(wy2 + 3 * k) + 'M' + f(bx + 10 * k) + ' ' + f(bodyTop) + 'L' + f(bx + 4 * k) + ' ' + f(mid) + thin;
+        if (D !== 'kebaya' && D !== 'polos' && D !== 'rompi') body += '<path d="M' + f(bx - 13 * k) + ' ' + f(bodyTop - 1 * k) + 'l' + f(7 * k) + ' ' + f(9 * k) + 'l' + f(6 * k) + ' ' + f(-8 * k) + 'l' + f(6 * k) + ' ' + f(8 * k) + 'l' + f(7 * k) + ' ' + f(-9 * k) + thin;
+      } else if (D === 'rompi' && C0b < -.3) body += '<path d="M' + f(bx - 16 * k) + ' ' + f((bodyTop + wy2) / 2 - 4 * k) + 'h' + f(32 * k) + '" stroke="#FFFFFF" stroke-width="' + f(5 * k) + '" fill="none"/>';
+      if (tailFront) body += tl;
+    }
     /* kepala */
     var S0 = s, C0 = c; if (pose.turn) { c = Math.cos((yaw + pose.turn) * D2R); s = Math.sin((yaw + pose.turn) * D2R); }
     var hx = cx + pose.x, hy = headY, hm = '', faceVis = c > -.2;
     function feat(fx, fy, fz) { var X = fx * r, Z = fz * r; return [hx + X * c + Z * s, hy + fy * r, Z * c - X * s]; }
     var ears = [feat(-.97, .08, -.12), feat(.97, .08, -.12)].sort(function (a, b) { return a[2] - b[2]; }), earM = function (e) { return '<circle cx="' + f(e[0]) + '" cy="' + f(e[1]) + '" r="' + f(10 * k) + '" fill="' + skin + '" stroke="' + sl + '"' + st + '/>'; };
-    var earBack = '', earFront = '';
-    ears.forEach(function (e) { if (Math.abs(s) > .5 && e[2] > 0) earFront += earM(e); else earBack += earM(e); });
-    if (look.hair !== 'botak') {
+    var earBack = '', earFront = '', ac = Math.abs(c);
+    if (!C) ears.forEach(function (e) { if (Math.abs(s) > .5 && e[2] > 0) earFront += earM(e); else earBack += earM(e); });
+    else {
+      var ef = C.earC || skin, pinkIn = C.earIn || '#FFB3C7', showIn = c > -.3, OS = '" stroke="' + sl + '"' + st + '/>';
+      [-1, 1].forEach(function (sd) {
+        var e, m2 = '';
+        if (C.ears === 'kucing') { e = feat(sd * .6, -.7, 0); var ln2 = sd * 9 * k * ac, tr = function (b2, h2, col, o2) { return '<path d="M' + f(e[0] - b2) + ' ' + f(e[1] + 10 * k) + 'Q' + f(e[0] - b2 * .55 + ln2) + ' ' + f(e[1] - h2 * .95) + ' ' + f(e[0] + ln2) + ' ' + f(e[1] - h2) + 'Q' + f(e[0] + b2 * .55 + ln2) + ' ' + f(e[1] - h2 * .95) + ' ' + f(e[0] + b2) + ' ' + f(e[1] + 10 * k) + 'Z" fill="' + col + o2; }; m2 = tr(27 * k, 52 * k, ef, OS) + (showIn ? tr(16 * k, 36 * k, pinkIn, '"/>') : ''); }
+        else if (C.ears === 'kelinci') { e = feat(sd * .4, -.9, 0); var rot = ' transform="rotate(' + f(sd * 10 * ac) + ' ' + f(e[0]) + ' ' + f(e[1]) + ')"'; m2 = '<ellipse' + rot + ' cx="' + f(e[0]) + '" cy="' + f(e[1] - 36 * k) + '" rx="' + f(21 * k) + '" ry="' + f(52 * k) + '" fill="' + ef + OS + (showIn ? '<ellipse' + rot + ' cx="' + f(e[0]) + '" cy="' + f(e[1] - 34 * k) + '" rx="' + f(10 * k) + '" ry="' + f(34 * k) + '" fill="' + pinkIn + '"/>' : ''); }
+        else if (C.ears === 'rusa' || C.ears === 'kerbau') { var kb = C.ears === 'kerbau'; e = feat(sd * (kb ? 1.02 : .9), kb ? -.12 : -.52, 0); var ex2 = e[0] + sd * 20 * k * ac, rt = ' transform="rotate(' + f(sd * (kb ? 12 : -30)) + ' ' + f(ex2) + ' ' + f(e[1]) + ')"'; m2 = '<ellipse' + rt + ' cx="' + f(ex2) + '" cy="' + f(e[1]) + '" rx="' + f(31 * k) + '" ry="' + f(17 * k) + '" fill="' + ef + OS + (showIn && !kb ? '<ellipse' + rt + ' cx="' + f(ex2) + '" cy="' + f(e[1] + 2 * k) + '" rx="' + f(20 * k) + '" ry="' + f(9 * k) + '" fill="' + pinkIn + '"/>' : ''); }
+        if (C.antler) { var a2 = feat(sd * .38, -.92, 0); m2 += '<path d="M' + f(a2[0]) + ' ' + f(a2[1] + 6 * k) + 'l' + f(sd * 5 * k) + ' ' + f(-30 * k) + 'q' + f(sd * 14 * k) + ' ' + f(-4 * k) + ' ' + f(sd * 14 * k) + ' ' + f(-22 * k) + 'M' + f(a2[0] + sd * 4 * k) + ' ' + f(a2[1] - 16 * k) + 'q' + f(-sd * 12 * k) + ' ' + f(-6 * k) + ' ' + f(-sd * 9 * k) + ' ' + f(-24 * k) + '" fill="none" stroke="' + C.antler + '" stroke-width="' + f(9 * k) + '" stroke-linecap="round" stroke-linejoin="round"/>'; }
+        if (C.horn) { var h3 = feat(sd * .78, -.7, 0); m2 += '<path d="M' + f(h3[0] - sd * 8 * k) + ' ' + f(h3[1] + 8 * k) + 'q' + f(sd * 34 * k) + ' ' + f(-4 * k) + ' ' + f(sd * 22 * k) + ' ' + f(-44 * k) + 'q' + f(sd * 2 * k) + ' ' + f(26 * k) + ' ' + f(-sd * 30 * k) + ' ' + f(30 * k) + 'Z" fill="' + C.horn + OS; }
+        earBack += m2;
+      });
+      if (C.bun && c > -.3) { var bq = feat(-.62, .02, -.85); earBack += '<circle cx="' + f(bq[0]) + '" cy="' + f(bq[1]) + '" r="' + f(24 * k) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>'; }
+      if (C.hijab) earBack = '<ellipse cx="' + f(hx) + '" cy="' + f(hy + r * .92) + '" rx="' + f(r * .92) + '" ry="' + f(r * .5) + '" fill="' + C.hijab + '" stroke="' + sl + '"' + st + '/>' + earBack;
+    }
+    if (!C && look.hair !== 'botak') {
 
       if (look.hair === 'kuncir') [-1, 1].forEach(function (sd) { var q = feat(sd * 1.05, -.35, -.25); hm += '<circle cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" r="' + f(17 * k) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>'; });
       if (look.hair === 'jabrik') { var sp = ''; for (var i = -3; i <= 3; i++) { var a = (-90 + i * 22) * D2R, x0 = hx + Math.cos(a) * r * .98, y0 = hy + Math.sin(a) * r * .98; sp += 'M' + f(x0 - 9 * k) + ' ' + f(y0 + 6 * k) + 'L' + f(hx + Math.cos(a) * r * 1.3) + ' ' + f(hy + Math.sin(a) * r * 1.3) + 'L' + f(x0 + 9 * k) + ' ' + f(y0 + 6 * k); } hm += '<path d="' + sp + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>'; }
     }
-    hm += earBack + '<circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r) + '" fill="' + skin + '" stroke="' + sl + '"' + st + '/>';
-    if (look.hair !== 'botak') {
-      var cid = 'hc' + o.id, E = c >= -.2 ? [hx - s * r * .62, hy - r * (.8 - .12 * Math.abs(s)), r * (1 + .1 * Math.abs(s)), r * (.52 + .3 * Math.abs(s))] : [hx - s * r * .3, hy - r * .22, r * 1.12, r * 1.02];
+    hm += earBack + '<circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r) + '" fill="' + (C && C.hijab ? C.hijab : skin) + '" stroke="' + sl + '"' + st + '/>';
+    if (C) {
+      var kid = 'kc' + o.id, hin = '<clipPath id="' + kid + '"><circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r - lw / 2) + '"/></clipPath><g clip-path="url(#' + kid + ')">';
+      if (C.hijab && c > -.3) hin += '<ellipse cx="' + f(hx + s * r * .32) + '" cy="' + f(hy + r * .06) + '" rx="' + f(r * .84 * (.62 + .38 * ac)) + '" ry="' + f(r * .8) + '" fill="' + skin + '" stroke="' + sl + '"' + st + '/>';
+      if (C.muzzle && !C.snout && c > -.3) hin += '<ellipse cx="' + f(hx + s * r * .55) + '" cy="' + f(hy + r * .8) + '" rx="' + f(r * 1.05) + '" ry="' + f(r * .6) + '" fill="' + C.muzzle + '"/>';
+      if (C.snout && c > -.3) { var sn = feat(0, .38, .72); hin += '<ellipse cx="' + f(sn[0]) + '" cy="' + f(sn[1]) + '" rx="' + f(r * .46 * (.7 + .3 * ac)) + '" ry="' + f(r * .34) + '" fill="' + C.muzzle + '"/>'; [-1, 1].forEach(function (sd) { var nq = feat(sd * .14, .26, .95); hin += '<circle cx="' + f(nq[0]) + '" cy="' + f(nq[1]) + '" r="' + f(3.6 * k) + '" fill="' + shade(C.muzzle, .6) + '"/>'; }); }
+      if (C.stripes) { var cap = '" fill="none" stroke="' + C.stripes + '" stroke-width="' + f(10 * k) + '" stroke-linecap="round"/>';
+        if (ac > .35) [-.24, 0, .24].forEach(function (x3) { hin += '<path d="M' + f(hx + x3 * r) + ' ' + f(hy - r * 1.02) + 'V' + f(hy - r * (x3 ? .7 : .62)) + cap; });
+        else { [-.14, .16].forEach(function (y3) { hin += '<path d="M' + f(hx - s * r * 1.02) + ' ' + f(hy + y3 * r) + 'H' + f(hx - s * r * .64) + cap; }); hin += '<path d="M' + f(hx - s * r * .1) + ' ' + f(hy - r * .98) + 'L' + f(hx + s * r * .12) + ' ' + f(hy - r * .84) + cap; } }
+      if (C.spots && c > -.3) [-1, 1].forEach(function (sd) { [[.8, -.02], [.66, .12], [.84, .22], [.7, .3]].forEach(function (d3) { var q5 = feat(sd * d3[0], d3[1], .45); if (q5[2] > -2) hin += '<circle cx="' + f(q5[0]) + '" cy="' + f(q5[1]) + '" r="' + f(6.5 * k) + '" fill="' + C.spots + '"/>'; }); });
+      if (C.cheekS && c > -.3) [-1, 1].forEach(function (sd) { [.08, .24].forEach(function (y4) { var q6 = feat(sd * .98, y4, .2), q7 = feat(sd * .7, y4 - .05, .5); hin += '<path d="M' + f(q6[0]) + ' ' + f(q6[1]) + 'L' + f(q7[0]) + ' ' + f(q7[1]) + '" stroke="' + C.cheekS + '" stroke-width="' + f(6 * k) + '" stroke-linecap="round" fill="none"/>'; }); });
+      hm += hin + '</g>';
+      if (C.whisk) [-1, 1].forEach(function (sd) { [.1, .24].forEach(function (y5, n5) { var x0 = ac > .35 ? hx + sd * r * .8 : hx - s * r * .12 * (sd > 0 ? 1 : 0) + (sd < 0 ? -s * r * .0 : 0), dx5 = ac > .35 ? sd * 36 * k : -s * 34 * k; if (ac <= .35 && sd > 0) return; hm += '<path d="M' + f(x0) + ' ' + f(hy + y5 * r) + 'l' + f(dx5) + ' ' + f((n5 ? 5 : -3) * k) + '" stroke="' + sl + '" stroke-width="4" stroke-linecap="round" fill="none"/>'; }); });
+    }
+    if (hairOn) {
+      var hbig = C && C.hair.t === 'jambul' ? 1.25 : 1, cid = 'hc' + o.id, E = c >= -.2 ? [hx - s * r * .62, hy - r * (.8 - .12 * Math.abs(s)), r * (1 + .1 * Math.abs(s)), r * (.52 + .3 * Math.abs(s)) * hbig] : [hx - s * r * .3, hy - r * .22, r * 1.12, r * 1.02];
       hm += '<clipPath id="' + cid + '"><circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r + lw / 2) + '"/></clipPath><g clip-path="url(#' + cid + ')"><ellipse cx="' + f(E[0]) + '" cy="' + f(E[1]) + '" rx="' + f(E[2]) + '" ry="' + f(E[3]) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/></g>';
       /* garis luar kepala di bagian yang tertutup rambut memakai warna gelap rambut */
       var arc = '', on = false, A0 = 0, inE = function (a) { var x = hx + Math.cos(a * D2R) * r, y = hy + Math.sin(a * D2R) * r; return Math.pow((x - E[0]) / E[2], 2) + Math.pow((y - E[1]) / E[3], 2) <= 1; }, start = 0;
@@ -281,6 +370,13 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       if (arc) hm += '<path d="' + arc + '" fill="none" stroke="' + hd + '"' + st + '/>';
     }
     hm += earFront;
+    if (C) {
+      if (C.bun && c <= -.3) { var bq2 = feat(-.62, .02, -.85); hm += '<circle cx="' + f(bq2[0]) + '" cy="' + f(bq2[1]) + '" r="' + f(24 * k) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>'; }
+      if (C.hair && C.hair.t === 'jambul') hm += '<path d="M' + f(hx - s * r * .2 - 6 * k) + ' ' + f(hy - r * .98) + 'q' + f(10 * k + s * 10 * k) + ' ' + f(-22 * k) + ' ' + f(34 * k) + ' ' + f(-20 * k) + 'q' + f(-12 * k) + ' ' + f(8 * k) + ' ' + f(-10 * k) + ' ' + f(22 * k) + 'Z" fill="' + hc + '" stroke="' + hd + '"' + st + '/>';
+      if (C.hat === 'peci') hm += '<path d="M' + f(hx - r * .5) + ' ' + f(hy - r * .84) + 'L' + f(hx - r * .46) + ' ' + f(hy - r * 1.3) + 'Q' + f(hx) + ' ' + f(hy - r * 1.38) + ' ' + f(hx + r * .46) + ' ' + f(hy - r * 1.3) + 'L' + f(hx + r * .5) + ' ' + f(hy - r * .84) + 'Q' + f(hx) + ' ' + f(hy - r * 1.02) + ' ' + f(hx - r * .5) + ' ' + f(hy - r * .84) + 'Z" fill="#26262B"/>';
+      if (C.hat === 'topi') hm += '<path d="M' + f(hx - r * .6) + ' ' + f(hy - r * .8) + 'Q' + f(hx) + ' ' + f(hy - r * 1.78) + ' ' + f(hx + r * .6) + ' ' + f(hy - r * .8) + 'Z" fill="' + C.hatC + '" stroke="' + shade(C.hatC, .72) + '"' + st + '/><ellipse cx="' + f(hx + s * r * .12) + '" cy="' + f(hy - r * .8) + '" rx="' + f(r * .84) + '" ry="' + f(r * .11) + '" fill="' + C.hatC + '" stroke="' + shade(C.hatC, .72) + '"' + st + '/>';
+      if (C.bow && c > -.6) { var bw2 = feat(.44, -.8, .45), bx2 = bw2[0], by2 = bw2[1], wing = function (sd) { return '<path d="M' + f(bx2) + ' ' + f(by2) + 'l' + f(sd * 30 * k) + ' ' + f(-17 * k) + 'q' + f(sd * 8 * k) + ' ' + f(17 * k) + ' 0 ' + f(34 * k) + 'Z" fill="' + C.bow + '" stroke="' + shade(C.bow, .75) + '"' + st + '/>'; }; hm += wing(-1) + wing(1) + '<circle cx="' + f(bx2) + '" cy="' + f(by2) + '" r="' + f(9 * k) + '" fill="' + C.bow + '" stroke="' + shade(C.bow, .75) + '"' + st + '/>'; }
+    }
     if (faceVis) {
       var fcid = 'fc' + o.id; hm += '<clipPath id="' + fcid + '"><circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r - 2) + '"/></clipPath>'; var hmKeep = hm; hm = '';
       var ex = pose.expr || expr, blink = o.blink, eyes = [feat(-.3, -.04, .82), feat(.3, -.04, .82)], vis = function (q) { return Math.max(0, Math.min(1, q[2] / (r * .8) + .25)); };
@@ -295,7 +391,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
           if (ex === 'menangis') { var tp = ((o.t || 0) * 1.6 + i * .5) % 1; hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1] + (12 + 26 * tp) * k) + '" rx="' + f(3.5 * k) + '" ry="' + f(5.5 * k) + '" fill="#6EC6FF" opacity="' + f(1 - tp * .6) + '"/>'; }
         } else {
           var pdx = 2 * k * s + (ex === 'sedih' ? 0 : ex === 'bingung' ? -2.5 * k : 1.5 * k), pdy = (ex === 'sedih' || ex === 'malu' ? 4 : big ? 0 : ex === 'bingung' ? -3 : 1.5) * k;
-          hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(rx) + '" ry="' + f(er) + '" fill="#fff" stroke="' + sl + '"' + st3 + '/><circle cx="' + f(q[0] + pdx) + '" cy="' + f(q[1] + pdy) + '" r="' + f((big ? 3.2 : 4.4) * k) + '" fill="#1E1E24"/>';
+          hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(rx) + '" ry="' + f(er) + '" fill="#fff" stroke="' + sl + '"' + st3 + '/><circle cx="' + f(q[0] + pdx) + '" cy="' + f(q[1] + pdy) + '" r="' + f((big ? 3.2 : C ? 5.4 : 4.4) * k) + '" fill="#1E1E24"/>';
           if (lid) hm += '<path d="M' + f(q[0] - rx - 2) + ' ' + f(q[1] - er - 2) + 'H' + f(q[0] + rx + 2) + 'V' + f(q[1] + 1 * k) + 'H' + f(q[0] - rx - 2) + 'Z" fill="' + skin + '"/><path d="M' + f(q[0] - rx) + ' ' + f(q[1] + 1 * k) + 'H' + f(q[0] + rx) + '" stroke="' + sl + '"' + st + ' fill="none"/>';
         }
         var bt = ex === 'marah' ? 1 : (ex === 'sedih' || ex === 'takut' || ex === 'menangis') ? -1 : ex === 'bingung' ? (i === 1 ? 1 : 0) : null;
@@ -303,7 +399,10 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       });
       hm = hmKeep + '<g clip-path="url(#' + fcid + ')">' + hm + '</g>'; hmKeep = hm; hm = '';
       var nz = feat(0, .2, 1.02), mo = feat(0, .52, .6), mw = 21 * k * (.7 + .3 * Math.abs(c)), mx = mo[0], my = mo[1], pink = '#C4577A', talk = o.talk, dark = '#7A1F3D', ln = '" fill="none" stroke="' + pink + '"' + st + '/>';
-      if (c > .2) hm += '<path d="M' + f(nz[0] - 5 * k) + ' ' + f(nz[1]) + 'Q' + f(nz[0]) + ' ' + f(nz[1] + 6 * k) + ' ' + f(nz[0] + 5 * k) + ' ' + f(nz[1]) + '" fill="none" stroke="' + sl + '"' + st + '/>';
+      if (C) { if (C.snout) {} else if (C.beak) hm += c > .35 ? '<path d="M' + f(nz[0] - 11 * k) + ' ' + f(nz[1] - 6 * k) + 'h' + f(22 * k) + 'l' + f(-11 * k) + ' ' + f(19 * k) + 'Z" fill="' + C.beak + '"/>' : '<path d="M' + f(nz[0] - s * 4 * k) + ' ' + f(nz[1] - 10 * k) + 'l' + f(s * 24 * k) + ' ' + f(9 * k) + 'l' + f(-s * 24 * k) + ' ' + f(10 * k) + 'Z" fill="' + C.beak + '"/>'; else hm += '<ellipse cx="' + f(nz[0] - (c > .35 ? 0 : 2 * k * s)) + '" cy="' + f(nz[1] - 6 * k) + '" rx="' + f(9 * k) + '" ry="' + f(7 * k) + '" fill="' + (C.nose || '#D8907E') + '"/>';
+        if (C.kumis) [-13, 0, 13].forEach(function (d6) { hm += '<circle cx="' + f(nz[0] + d6 * k * (.5 + .5 * ac)) + '" cy="' + f(nz[1] + (d6 ? 8 : 10) * k) + '" r="' + f(10 * k) + '" fill="#FFFFFF"/>'; });
+        if (C.glasses) { eyes.forEach(function (q8) { if (vis(q8) > .12) hm += '<circle cx="' + f(q8[0]) + '" cy="' + f(q8[1]) + '" r="' + f(17 * k) + '" fill="none" stroke="#55555C" stroke-width="4"/>'; }); if (ac > .35) hm += '<path d="M' + f(eyes[0][0] + 17 * k) + ' ' + f(eyes[0][1]) + 'H' + f(eyes[1][0] - 17 * k) + 'M' + f(eyes[0][0] - 17 * k) + ' ' + f(eyes[0][1]) + 'H' + f(hx - r * .96) + 'M' + f(eyes[1][0] + 17 * k) + ' ' + f(eyes[1][1]) + 'H' + f(hx + r * .96) + '" stroke="#55555C" stroke-width="4" fill="none"/>'; else hm += '<path d="M' + f(eyes[s > 0 ? 0 : 1][0] - s * 17 * k) + ' ' + f(eyes[0][1]) + 'H' + f(hx - s * r * .3) + '" stroke="#55555C" stroke-width="4" fill="none"/>'; }
+      } else if (c > .2) hm += '<path d="M' + f(nz[0] - 5 * k) + ' ' + f(nz[1]) + 'Q' + f(nz[0]) + ' ' + f(nz[1] + 6 * k) + ' ' + f(nz[0] + 5 * k) + ' ' + f(nz[1]) + '" fill="none" stroke="' + sl + '"' + st + '/>';
       else hm += '<circle cx="' + f(nz[0] - 2 * k * s) + '" cy="' + f(nz[1]) + '" r="' + f(7 * k) + '" fill="' + skin + '" stroke="' + sl + '"' + st + '/>';
       hm = hmKeep + hm; hmKeep = hm; hm = '';
       if (ex === 'menguap') hm += '<ellipse cx="' + f(mx) + '" cy="' + f(my + 3 * k) + '" rx="' + f(10 * k) + '" ry="' + f(15 * k) + '" fill="' + dark + '" stroke="' + pink + '"' + st + '/>';
@@ -338,6 +437,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     /* tindak lanjut: kepala sedikit tertinggal dari gerak naik-turun badan */
     var p0 = rawPose(t - .06); p.hdy = Math.max(-7, Math.min(7, (p0.y - p.y) * .28)); return p;
   }
+  function fitScale(b) { var sz = look.cast && CAST[look.cast] ? CAST[look.cast].size : look.size, tall = look.cast && (CAST[look.cast].antler || CAST[look.cast].ears === 'kelinci' || CAST[look.cast].hat) ? .88 : 1; return b * (look.cast ? (sz === 'dewasa' ? .84 : 1.08) : (sz === 'dewasa' ? .7 : sz === 'balita' ? 1.08 : 1)) * tall; }
   function scene(inner) { return '<rect width="400" height="460" fill="var(--stage)"/><path d="M0 360Q200 330 400 360V460H0Z" fill="var(--grass)"/>' + inner; }
   var blinkAt = 2;
   function frame(now) {
@@ -345,14 +445,14 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     var yaw = 0; VIEWS.forEach(function (v) { if (v[0] === vkey) yaw = v[2]; });
     var bl = t > blinkAt && t < blinkAt + .14; if (t > blinkAt + .14) blinkAt = t + 1.6 + Math.random() * 2.4; if (t < blinkAt - 6) blinkAt = t + 1;
     var TS = ['A', 'A', 'a', 'o', 'A', 'a', '', 'A', 'o', 'a', '', ''], talk = $('talk').checked ? TS[Math.floor(t / .1) % TS.length] : '';
-    $('stage').innerHTML = scene(draw(poseAt(t), yaw, { cx: 200, gy: 408, id: 'm', scale: 1.55, blink: bl, talk: talk, flip: $('flip').checked, t: t }));
+    $('stage').innerHTML = scene(draw(poseAt(t), yaw, { cx: 200, gy: 408, id: 'm', scale: fitScale(1.5), blink: bl, talk: talk, flip: $('flip').checked, t: t }));
     requestAnimationFrame(frame);
   }
   function thumbs() {
     var box = $('views'); box.textContent = '';
     VIEWS.forEach(function (v) {
       var b = document.createElement('button'); b.type = 'button'; b.dataset.k = v[0]; b.setAttribute('aria-pressed', String(v[0] === vkey));
-      b.innerHTML = '<svg viewBox="0 0 400 460" aria-hidden="true">' + draw(rest(), v[2], { cx: 200, gy: 430, id: 't' + v[0], scale: 1.75 }) + '</svg><span>' + v[1] + '</span>';
+      b.innerHTML = '<svg viewBox="0 0 400 460" aria-hidden="true">' + draw(rest(), v[2], { cx: 200, gy: 430, id: 't' + v[0], scale: fitScale(1.7) }) + '</svg><span>' + v[1] + '</span>';
       b.onclick = function () { vkey = v[0]; thumbs(); }; box.appendChild(b);
     });
   }
@@ -371,6 +471,10 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
   seg('exprs', EXPRS, function () { return expr; }, function (k) { expr = k; });
   function note() { var on = $('pri').checked && ACTS2[act]; $('actNote').textContent = on ? 'Prinsip yang dipakai: ' + ACTS2[act].pr : ACTS[act].note + ($('pri').checked ? '' : ' (Mode acuan: tanpa 12 prinsip.)'); }
   note(); $('pri').onchange = function () { t0 = performance.now(); if (paused) pausedAt = t0; note(); };
+  (function () { var e = $('o-cast'), o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'Buat sendiri (anak manusia)'; e.appendChild(o0);
+    Object.keys(CAST).forEach(function (k2) { var o = document.createElement('option'); o.value = k2; o.textContent = CAST[k2].n; e.appendChild(o); });
+    function sync() { e.value = look.cast || ''; ['o-size', 'o-skin', 'o-hair', 'o-hairc', 'o-shape', 'o-cloth', 'o-shoe'].forEach(function (id) { $(id).disabled = !!look.cast; }); }
+    e.onchange = function () { look.cast = e.value; sync(); thumbs(); }; window.g3cast = function (k3) { look.cast = k3; sync(); thumbs(); }; setTimeout(sync, 0); })();
   fill('o-size', SIZES, 'size'); fill('o-skin', SKINS, 'skin'); fill('o-hair', HAIRS, 'hair'); fill('o-hairc', HAIRC, 'hairc'); fill('o-shape', SHAPES, 'shape'); fill('o-cloth', CLOTH, 'cloth'); fill('o-shoe', SHOES, 'shoe');
   $('pause').onclick = function () { paused = !paused; if (paused) pausedAt = performance.now(); else t0 += performance.now() - pausedAt; this.textContent = paused ? 'Putar' : 'Jeda'; this.setAttribute('aria-pressed', String(paused)); };
   window.g3 = function (a, v, t, m, e) { mood = m || 'netral'; if (e) expr = e; act = a; vkey = v; paused = true; t0 = 0; pausedAt = t * 1000; thumbs(); };
