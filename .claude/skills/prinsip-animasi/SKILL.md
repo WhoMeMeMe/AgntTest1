@@ -81,6 +81,12 @@ the characters (see project CLAUDE.md, section 2).
 
 ## 4. Gaya 3 character build (original character, not a copy)
 
+- **Director's shape brief (2026-11-14): cute, bell body, tiny stick legs.** Body is a wide
+  bell about as wide as the head at the hem (half-width 56 at scale 1, 20 at the top, 88 tall).
+  Legs are short thin sticks (12 + 12), 36 apart, never thick tubes; long trousers are an
+  8 px stick in the trouser colour. Shoes are flat dark ovals 30 x 11 that both point the way
+  the character faces. Eyes are small round whites (r 10.5) set high and close together
+  (x +/-0.23, y -0.24 of the head radius) with small pupils (r 4.2) looking up.
 - Outline: 5 px, colour = fill darkened to about 78%. Never black.
 - Head: circle, radius 62 at scale 1. Body: bell shape 76 tall, 42 wide at top, 72 at hem.
 - Limbs: 5 px lines without fill. Hands: three 8 px finger lines at -38, 0, +38 degrees.

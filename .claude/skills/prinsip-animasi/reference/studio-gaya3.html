@@ -252,10 +252,10 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     var C = look.cast && CAST[look.cast] || null;
     var skin = C ? C.fur : look.skin, sl = C ? (C.line || shade(skin, .75)) : shade(skin, .8), lc = C ? (C.limb || C.fur) : sl, cl = C ? C.top.c : look.cloth, cd = C ? (C.top.line || shade(cl, .76)) : shade(cl, cl === '#FFFFFF' ? .78 : .76), shoe = C ? '#1E1E24' : look.shoe, hc = C ? (C.hair ? C.hair.c : '#000000') : look.hairc, hd = shade(hc, .72);
     var hairOn = C ? !!C.hair : look.hair !== 'botak', bt = C ? C.bottom : null, bc = bt ? bt.c : '', bd = bt ? shade(bt.c, .72) : '';
-    var legU = 22 * k * bodyK, legD = 22 * k * bodyK, bodyH = 76 * k * bodyK, tw = 21 * k, bw = 36 * k * (bodyK > 1.2 ? 1.12 : 1), r = 62 * k, armU = 25 * k * (bodyK > 1.2 ? 1.25 : 1), armD = 23 * k * (bodyK > 1.2 ? 1.25 : 1), lw = 5;
+    var legU = 12 * k * bodyK, legD = 12 * k * bodyK, bodyH = 88 * k * bodyK, tw = 20 * k, bw = 56 * k * (bodyK > 1.2 ? 1.04 : 1), r = 62 * k, armU = 25 * k * (bodyK > 1.2 ? 1.25 : 1), armD = 23 * k * (bodyK > 1.2 ? 1.25 : 1), lw = 5;
     var sit = pose.sit || 0, hipY = gy - 7 * k - (legU + legD) + Math.min(1, sit) * legU + Math.max(0, sit - 1) * (legD - 3 * k) + pose.y, bodyTop = hipY - bodyH + 6 * k, headY = bodyTop - r * .8 + (pose.hdy || 0) * k;
     if (!sit && !rotF) {
-      var lowA = -1e9; [['lL', -1], ['lR', 1]].forEach(function (d) { lowA = Math.max(lowA, chain([d[1] * 13 * k, hipY, 0], pose[d[0]], d[1], legU, legD)[2][1]); });
+      var lowA = -1e9; [['lL', -1], ['lR', 1]].forEach(function (d) { lowA = Math.max(lowA, chain([d[1] * 18 * k, hipY, 0], pose[d[0]], d[1], legU, legD)[2][1]); });
       var lockW = pose.air ? Math.max(0, Math.min(1, 1 + pose.y / 8)) : 1, lockDy = ((gy - 7 * k) - lowA) * lockW;
       hipY += lockDy; bodyTop += lockDy; headY += lockDy;
       if (lockW >= 1) { var pg = {}; for (var kg in pose) pg[kg] = pose[kg]; pg.y = 0; pose = pg; }
@@ -269,16 +269,13 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     function line(pts, col) { return '<path d="M' + pts.map(function (q) { return f(q[0]) + ' ' + f(q[1]); }).join('L') + '" fill="none" stroke="' + col + '"' + st + '/>'; }
     var back = '', front = '', legs = '';
     /* kaki: selalu di bawah badan */
-    [['lL', -1], ['lR', 1]].map(function (d) { var ch = chain([d[1] * 13 * k, hipY, 0], pose[d[0]], d[1], legU, legD); ch.side = d[1]; return ch; }).sort(function (a, b) { return a[2][2] - b[2][2]; }).forEach(function (ch) {
-      var an = ch[2], ft = [an[0] + 8 * k * s + ch.side * 3 * k * c, an[1] + 4 * k], legCol = C ? lc : (look.shape === 'kaus' ? cd : sl);
+    [['lL', -1], ['lR', 1]].map(function (d) { var ch = chain([d[1] * 18 * k, hipY, 0], pose[d[0]], d[1], legU, legD); ch.side = d[1]; return ch; }).sort(function (a, b) { return a[2][2] - b[2][2]; }).forEach(function (ch) {
+      var face = Math.abs(s) > .2 ? (s > 0 ? 1 : -1) : 1, an = ch[2], ft = [an[0] + 9 * k * face, an[1] + 4 * k], legCol = C ? lc : (look.shape === 'kaus' ? cd : sl);
       legs += line([ch[0], ch[1], ch[2]], legCol);
-      if (bt && (bt.t === 'celana' || bt.t === 'celemek' || bt.t === 'celanapendek')) {
-        var pc = bt.t === 'celemek' ? bt.c2 : bc, sh = bt.t === 'celanapendek', e1 = sh ? [ch[0][0] + (ch[1][0] - ch[0][0]) * .8, ch[0][1] + (ch[1][1] - ch[0][1]) * .8] : ch[1], e2 = [ch[1][0] + (ch[2][0] - ch[1][0]) * .86, ch[1][1] + (ch[2][1] - ch[1][1]) * .86];
-        legs += '<path d="M' + f(ch[0][0]) + ' ' + f(ch[0][1]) + 'L' + f(e1[0]) + ' ' + f(e1[1]) + (sh ? '' : 'L' + f(e2[0]) + ' ' + f(e2[1])) + '" fill="none" stroke="' + pc + '" stroke-width="' + f(19 * k) + '" stroke-linecap="butt" stroke-linejoin="round"/>';
-      }
-      var sw = Math.atan2(ch[2][0] - ch[1][0], Math.max(1, ch[2][1] - ch[1][1])) / D2R, up = ch[2][1] - ch[0][1] < legD * .6, fr = up ? -78 * (s >= 0 ? 1 : -1) * Math.abs(s) : -sw * .8;
-      if (up) ft = [an[0] + 3 * k * s, an[1] - 5 * k];
-      legs += '<ellipse transform="rotate(' + f(fr) + ' ' + f(ft[0]) + ' ' + f(ft[1]) + ')" cx="' + f(ft[0]) + '" cy="' + f(ft[1]) + '" rx="' + f((10 + 6 * Math.abs(s)) * k) + '" ry="' + f(6 * k) + '" fill="' + (shoe || skin) + '"' + (shoe ? '' : ' stroke="' + sl + '"' + st) + '/>';
+      if (bt && (bt.t === 'celana' || bt.t === 'celemek')) legs += '<path d="M' + f(ch[0][0]) + ' ' + f(ch[0][1]) + 'L' + f(ch[1][0]) + ' ' + f(ch[1][1]) + 'L' + f(ch[2][0]) + ' ' + f(ch[2][1]) + '" fill="none" stroke="' + (bt.t === 'celemek' ? bt.c2 : bc) + '" stroke-width="' + f(8 * k) + '" stroke-linecap="round" stroke-linejoin="round"/>';
+      var sw = Math.atan2(ch[2][0] - ch[1][0], Math.max(1, ch[2][1] - ch[1][1])) / D2R, up = ch[2][1] - ch[0][1] < legD * .6, fr = up ? -78 * face : -sw * .8;
+      if (up) ft = [an[0] + 3 * k * face, an[1] - 5 * k];
+      legs += '<ellipse transform="rotate(' + f(fr) + ' ' + f(ft[0]) + ' ' + f(ft[1]) + ')" cx="' + f(ft[0]) + '" cy="' + f(ft[1]) + '" rx="' + f(15 * k) + '" ry="' + f(5.5 * k) + '" fill="' + (shoe || skin) + '"' + (shoe ? '' : ' stroke="' + sl + '"' + st) + '/>';
     });
     /* lengan */
     [['aL', -1], ['aR', 1]].forEach(function (d) {
@@ -392,19 +389,19 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     }
     if (faceVis) {
       var fcid = 'fc' + o.id; hm += '<clipPath id="' + fcid + '"><circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(r - 2) + '"/></clipPath>'; var hmKeep = hm; hm = '';
-      var ex = pose.expr || expr, blink = o.blink, eyes = C ? [feat(-.33, -.1, .82), feat(.33, -.1, .82)] : [feat(-.3, -.04, .82), feat(.3, -.04, .82)], vis = function (q) { return Math.max(0, Math.min(1, q[2] / (r * .8) + .25)); };
+      var ex = pose.expr || expr, blink = o.blink, eyes = [feat(-.23, -.24, .86), feat(.23, -.24, .86)], vis = function (q) { return Math.max(0, Math.min(1, q[2] / (r * .8) + .25)); };
       var big = ex === 'kaget' || ex === 'takut', lid = ex === 'ngantuk' || ex === 'bosan', chk = ex === 'malu' ? 1.35 : 1, browC = shade(skin, .55);
-      [feat(-.68, .42, .62), feat(.68, .42, .62)].forEach(function (q) { var v = Math.min(1, Math.max(0, q[2] / (r * .5))); if (v > .1) hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(13 * chk * k * (.45 + .55 * v)) + '" ry="' + f(13 * chk * k) + '" fill="#FF9DB5" opacity=".8"/>'; });
+      [feat(-.66, .36, .62), feat(.66, .36, .62)].forEach(function (q) { var v = Math.min(1, Math.max(0, q[2] / (r * .5))); if (v > .1) hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(15 * chk * k * (.45 + .55 * v)) + '" ry="' + f(15 * chk * k) + '" fill="#FF9DB5" opacity=".8"/>'; });
       eyes.forEach(function (q, i) {
-        var v = vis(q); if (v < .12) return; var er = (big ? (C ? 16 : 13) : (C ? 13.5 : 10.5)) * k, st3 = ' stroke-width="3.5" stroke-linecap="round"', rx = er * (.5 + .5 * v), sd = i ? 1 : -1;
+        var v = vis(q); if (v < .12) return; var er = (big ? 13 : 10.5) * k, st3 = ' stroke-width="3.5" stroke-linecap="round"', rx = er * (.72 + .28 * v), sd = i ? 1 : -1;
         var shut = blink || ex === 'tertawa' || ex === 'menguap' || ex === 'tidur' || ex === 'menangis' || (ex === 'kedip' && i === 1);
         if (shut) {
           var bow = ex === 'tertawa' || ex === 'kedip' ? -12 : ex === 'menangis' ? 10 : ex === 'tidur' ? 6 : 0;
           hm += '<path d="M' + f(q[0] - rx) + ' ' + f(q[1] + 2 * k) + 'Q' + f(q[0]) + ' ' + f(q[1] + bow * k) + ' ' + f(q[0] + rx) + ' ' + f(q[1] + 2 * k) + '" fill="none" stroke="' + sl + '"' + st + '/>';
           if (ex === 'menangis') { var tp = ((o.t || 0) * 1.6 + i * .5) % 1; hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1] + (12 + 26 * tp) * k) + '" rx="' + f(3.5 * k) + '" ry="' + f(5.5 * k) + '" fill="#6EC6FF" opacity="' + f(1 - tp * .6) + '"/>'; }
         } else {
-          var pdx = 2 * k * s + (ex === 'sedih' ? 0 : ex === 'bingung' ? -2.5 * k : 1.5 * k), pdy = (ex === 'sedih' || ex === 'malu' ? 4 : big ? 0 : ex === 'bingung' ? -3 : 1.5) * k;
-          hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(rx) + '" ry="' + f(er) + '" fill="#fff" stroke="' + sl + '"' + st3 + '/><circle cx="' + f(q[0] + pdx) + '" cy="' + f(q[1] + pdy) + '" r="' + f((big ? (C ? 4.6 : 3.2) : C ? 6.6 : 4.4) * k) + '" fill="#1E1E24"/>';
+          var pdx = 2 * k * s + (ex === 'sedih' ? 0 : ex === 'bingung' ? -2.5 * k : 2 * k), pdy = (ex === 'sedih' || ex === 'malu' ? 4 : big ? 0 : ex === 'bingung' ? -3 : -2) * k;
+          hm += '<ellipse cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" rx="' + f(rx) + '" ry="' + f(er) + '" fill="#fff" stroke="' + sl + '"' + st3 + '/><circle cx="' + f(q[0] + pdx) + '" cy="' + f(q[1] + pdy) + '" r="' + f((big ? 3.4 : 4.2) * k) + '" fill="#1E1E24"/>';
           if (lid) hm += '<path d="M' + f(q[0] - rx - 2) + ' ' + f(q[1] - er - 2) + 'H' + f(q[0] + rx + 2) + 'V' + f(q[1] + 1 * k) + 'H' + f(q[0] - rx - 2) + 'Z" fill="' + skin + '"/><path d="M' + f(q[0] - rx) + ' ' + f(q[1] + 1 * k) + 'H' + f(q[0] + rx) + '" stroke="' + sl + '"' + st + ' fill="none"/>';
         }
         var bt = ex === 'marah' ? 1 : (ex === 'sedih' || ex === 'takut' || ex === 'menangis') ? -1 : ex === 'bingung' ? (i === 1 ? 1 : 0) : null;
@@ -414,12 +411,12 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
       var nz = feat(0, .2, 1.02), mo = feat(0, .52, .6), mw = 21 * k * (.7 + .3 * Math.abs(c)), mx = mo[0], my = mo[1], pink = '#C4577A', talk = o.talk, dark = '#7A1F3D', ln = '" fill="none" stroke="' + pink + '"' + st + '/>';
       if (C) { if (C.snout) {} else if (C.beak) hm += c > .35 ? '<path d="M' + f(nz[0] - 11 * k) + ' ' + f(nz[1] - 6 * k) + 'h' + f(22 * k) + 'l' + f(-11 * k) + ' ' + f(19 * k) + 'Z" fill="' + C.beak + '"/>' : '<path d="M' + f(nz[0] - s * 4 * k) + ' ' + f(nz[1] - 10 * k) + 'l' + f(s * 24 * k) + ' ' + f(9 * k) + 'l' + f(-s * 24 * k) + ' ' + f(10 * k) + 'Z" fill="' + C.beak + '"/>'; else hm += '<ellipse cx="' + f(nz[0] - (c > .35 ? 0 : 2 * k * s)) + '" cy="' + f(nz[1] - 6 * k) + '" rx="' + f(9 * k) + '" ry="' + f(7 * k) + '" fill="' + (C.nose || '#D8907E') + '"/>';
         if (C.kumis) [-13, 0, 13].forEach(function (d6) { hm += '<circle cx="' + f(nz[0] + d6 * k * (.5 + .5 * ac)) + '" cy="' + f(nz[1] + (d6 ? 8 : 10) * k) + '" r="' + f(10 * k) + '" fill="#FFFFFF"/>'; });
-        if (C.glasses) { eyes.forEach(function (q8) { if (vis(q8) > .12) hm += '<circle cx="' + f(q8[0]) + '" cy="' + f(q8[1]) + '" r="' + f(20 * k) + '" fill="none" stroke="#55555C" stroke-width="4"/>'; }); if (ac > .35) hm += '<path d="M' + f(eyes[0][0] + 20 * k) + ' ' + f(eyes[0][1]) + 'H' + f(eyes[1][0] - 20 * k) + 'M' + f(eyes[0][0] - 20 * k) + ' ' + f(eyes[0][1]) + 'H' + f(hx - r * .96) + 'M' + f(eyes[1][0] + 20 * k) + ' ' + f(eyes[1][1]) + 'H' + f(hx + r * .96) + '" stroke="#55555C" stroke-width="4" fill="none"/>'; else hm += '<path d="M' + f(eyes[s > 0 ? 0 : 1][0] - s * 20 * k) + ' ' + f(eyes[0][1]) + 'H' + f(hx - s * r * .3) + '" stroke="#55555C" stroke-width="4" fill="none"/>'; }
+        if (C.glasses) { eyes.forEach(function (q8) { if (vis(q8) > .12) hm += '<circle cx="' + f(q8[0]) + '" cy="' + f(q8[1]) + '" r="' + f(16 * k) + '" fill="none" stroke="#55555C" stroke-width="4"/>'; }); if (ac > .35) hm += '<path d="M' + f(eyes[0][0] + 16 * k) + ' ' + f(eyes[0][1]) + 'H' + f(eyes[1][0] - 16 * k) + 'M' + f(eyes[0][0] - 16 * k) + ' ' + f(eyes[0][1]) + 'H' + f(hx - r * .96) + 'M' + f(eyes[1][0] + 16 * k) + ' ' + f(eyes[1][1]) + 'H' + f(hx + r * .96) + '" stroke="#55555C" stroke-width="4" fill="none"/>'; else hm += '<path d="M' + f(eyes[s > 0 ? 0 : 1][0] - s * 16 * k) + ' ' + f(eyes[0][1]) + 'H' + f(hx - s * r * .3) + '" stroke="#55555C" stroke-width="4" fill="none"/>'; }
       } else if (c > .2) hm += '<path d="M' + f(nz[0] - 5 * k) + ' ' + f(nz[1]) + 'Q' + f(nz[0]) + ' ' + f(nz[1] + 6 * k) + ' ' + f(nz[0] + 5 * k) + ' ' + f(nz[1]) + '" fill="none" stroke="' + sl + '"' + st + '/>';
       else hm += '<circle cx="' + f(nz[0] - 2 * k * s) + '" cy="' + f(nz[1]) + '" r="' + f(7 * k) + '" fill="' + skin + '" stroke="' + sl + '"' + st + '/>';
       hm = hmKeep + hm; hmKeep = hm; hm = '';
       if (ex === 'menguap') hm += '<ellipse cx="' + f(mx) + '" cy="' + f(my + 3 * k) + '" rx="' + f(10 * k) + '" ry="' + f(15 * k) + '" fill="' + dark + '" stroke="' + pink + '"' + st + '/>';
-      else if (ex === 'menangis') hm += '<path d="M' + f(mx - mw * .8) + ' ' + f(my + 11 * k) + 'Q' + f(mx) + ' ' + f(my - 20 * k) + ' ' + f(mx + mw * .8) + ' ' + f(my + 11 * k) + 'Z" fill="' + dark + '" stroke="' + pink + '"' + st + '/>';
+      else if (ex === 'menangis') hm += '<path d="M' + f(mx - mw * .8) + ' ' + f(my + 11 * k) + 'Q' + f(mx) + ' ' + f(my - 16 * k) + ' ' + f(mx + mw * .8) + ' ' + f(my + 11 * k) + 'Z" fill="' + dark + '" stroke="' + pink + '"' + st + '/>';
       else if (talk === 'o' && ex !== 'tertawa') hm += '<circle cx="' + f(mx) + '" cy="' + f(my + 3 * k) + '" r="' + f(4.5 * k) + '" fill="' + dark + '" stroke="' + pink + '"' + st + '/>';
       else if (ex === 'tertawa' || talk || ex === 'kaget') { var oh = (ex === 'kaget' ? 9 : talk === 'a' && ex !== 'tertawa' ? 8 : 15) * k, ow = ex === 'kaget' ? mw * .45 : mw; hm += '<path d="M' + f(mx - ow) + ' ' + f(my - 3 * k) + 'Q' + f(mx) + ' ' + f(my + oh * 2) + ' ' + f(mx + ow) + ' ' + f(my - 3 * k) + (ex === 'kaget' ? 'Q' + f(mx) + ' ' + f(my - oh) + ' ' + f(mx - ow) + ' ' + f(my - 3 * k) : '') + 'Z" fill="' + dark + '" stroke="' + pink + '"' + st + '/>'; }
       else if (ex === 'takut') { var q4 = mw * .4; hm += '<path d="M' + f(mx - mw * .8) + ' ' + f(my + 3 * k) + 'q' + f(q4 / 2) + ' ' + f(-7 * k) + ' ' + f(q4) + ' 0t' + f(q4) + ' 0t' + f(q4) + ' 0t' + f(q4) + ' 0' + ln; }
