@@ -254,6 +254,12 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     var hairOn = C ? !!C.hair : look.hair !== 'botak', bt = C ? C.bottom : null, bc = bt ? bt.c : '', bd = bt ? shade(bt.c, .72) : '';
     var legU = 22 * k * bodyK, legD = 22 * k * bodyK, bodyH = 76 * k * bodyK, tw = 21 * k, bw = 36 * k * (bodyK > 1.2 ? 1.12 : 1), r = 62 * k, armU = 25 * k * (bodyK > 1.2 ? 1.25 : 1), armD = 23 * k * (bodyK > 1.2 ? 1.25 : 1), lw = 5;
     var sit = pose.sit || 0, hipY = gy - 7 * k - (legU + legD) + Math.min(1, sit) * legU + Math.max(0, sit - 1) * (legD - 3 * k) + pose.y, bodyTop = hipY - bodyH + 6 * k, headY = bodyTop - r * .8 + (pose.hdy || 0) * k;
+    if (!sit && !rotF) {
+      var lowA = -1e9; [['lL', -1], ['lR', 1]].forEach(function (d) { lowA = Math.max(lowA, chain([d[1] * 13 * k, hipY, 0], pose[d[0]], d[1], legU, legD)[2][1]); });
+      var lockW = pose.air ? Math.max(0, Math.min(1, 1 + pose.y / 8)) : 1, lockDy = ((gy - 7 * k) - lowA) * lockW;
+      hipY += lockDy; bodyTop += lockDy; headY += lockDy;
+      if (lockW >= 1) { var pg = {}; for (var kg in pose) pg[kg] = pose[kg]; pg.y = 0; pose = pg; }
+    }
     if (rotF) { var pz = {}; for (var kz in pose) pz[kz] = pose[kz]; pz.x = Math.pow(rotF, .55) * ((gy - headY + r * 2) / 2 - 26 * k); pose = pz; }
     function pr(X, Y, Z) { return [cx + pose.x + (X * c + Z * s), Y, Z * c - X * s]; }
     function prL(X, Y, Z) { return [cx + pose.x + (X + Z * s * .8), Y, Z * c - X * s]; }
@@ -339,7 +345,8 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
         else if (C.ears === 'rusa' || C.ears === 'kerbau') { var kb = C.ears === 'kerbau'; e = feat(sd * (kb ? 1.02 : .9), kb ? -.12 : -.52, 0); var ex2 = e[0] + sd * 20 * k * ac, rt = ' transform="rotate(' + f(sd * (kb ? 12 : -30)) + ' ' + f(ex2) + ' ' + f(e[1]) + ')"'; m2 = '<ellipse' + rt + ' cx="' + f(ex2) + '" cy="' + f(e[1]) + '" rx="' + f(31 * k) + '" ry="' + f(17 * k) + '" fill="' + ef + OS + (showIn && !kb ? '<ellipse' + rt + ' cx="' + f(ex2) + '" cy="' + f(e[1] + 2 * k) + '" rx="' + f(20 * k) + '" ry="' + f(9 * k) + '" fill="' + pinkIn + '"/>' : ''); }
         if (C.antler) { var a2 = feat(sd * .38, -.92, 0); m2 += '<path d="M' + f(a2[0]) + ' ' + f(a2[1] + 6 * k) + 'l' + f(sd * 5 * k) + ' ' + f(-30 * k) + 'q' + f(sd * 14 * k) + ' ' + f(-4 * k) + ' ' + f(sd * 14 * k) + ' ' + f(-22 * k) + 'M' + f(a2[0] + sd * 4 * k) + ' ' + f(a2[1] - 16 * k) + 'q' + f(-sd * 12 * k) + ' ' + f(-6 * k) + ' ' + f(-sd * 9 * k) + ' ' + f(-24 * k) + '" fill="none" stroke="' + C.antler + '" stroke-width="' + f(9 * k) + '" stroke-linecap="round" stroke-linejoin="round"/>'; }
         if (C.horn) { var h3 = feat(sd * .78, -.7, 0); m2 += '<path d="M' + f(h3[0] - sd * 8 * k) + ' ' + f(h3[1] + 8 * k) + 'q' + f(sd * 34 * k) + ' ' + f(-4 * k) + ' ' + f(sd * 22 * k) + ' ' + f(-44 * k) + 'q' + f(sd * 2 * k) + ' ' + f(26 * k) + ' ' + f(-sd * 30 * k) + ' ' + f(30 * k) + 'Z" fill="' + C.horn + OS; }
-        earBack += m2;
+        /* telinga yang dekat kamera digambar di depan kepala saat kepala menoleh */
+        if (Math.abs(s) > .3 && c > -.2 && e && e[2] > 0) earFront += m2; else earBack += m2;
       });
       if (C.bun && c > -.3) { var bq = feat(-.62, .02, -.85); earBack += '<circle cx="' + f(bq[0]) + '" cy="' + f(bq[1]) + '" r="' + f(24 * k) + '" fill="' + hc + '" stroke="' + hd + '"' + st + '/>'; }
       if (C.hijab) earBack = '<ellipse cx="' + f(hx) + '" cy="' + f(hy + r * .92) + '" rx="' + f(r * .92) + '" ry="' + f(r * .5) + '" fill="' + C.hijab + '" stroke="' + sl + '"' + st + '/>' + earBack;
@@ -430,7 +437,7 @@ select { font:inherit; color:var(--ink); background:var(--card); border:1px soli
     var shadow = '<ellipse cx="' + f(cx + (rotF ? 0 : pose.x)) + '" cy="' + f(gy + 2) + '" rx="' + f(46 * k * (1 + 1.6 * rotF) * (1 - Math.min(.5, -pose.y / 160))) + '" ry="' + f(7 * k) + '" fill="#000" opacity=".12"/>';
     return shadow + prop + (flip < 0 ? '<g transform="translate(' + f(2 * cx) + ' 0) scale(-1 1)">' + all + '</g>' : all);
   }
-  function rawPose(t) { return ($('pri').checked && ACTS2[act] ? ACTS2[act] : ACTS[act]).f(Math.max(0, t)); }
+  function rawPose(t) { var p = ($('pri').checked && ACTS2[act] ? ACTS2[act] : ACTS[act]).f(Math.max(0, t)); p.air = /^(lompat|senang|kaget|lari)$/.test(act) ? 1 : 0; return p; }
   function poseAt(t) {
     var tm = t * ((MOODS[mood] && MOODS[mood].tempo) || 1), p = rawPose(tm);
     if ($('pri').checked) { var p0 = rawPose(tm - .06); if (!p.hdy) p.hdy = Math.max(-3, Math.min(3, (p0.y - p.y) * .12)); }

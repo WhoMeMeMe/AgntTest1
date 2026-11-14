@@ -141,6 +141,12 @@ seasoning, not the dish. Ceilings that passed review:
 - Arm swing in a walk at most 12 degrees. No whole-body tremble above 0.6 px.
 - Idle and talking stay still. Mood layers add posture, not constant motion.
 
+- **Feet stay on the ground.** For every grounded action the rig lowers the body until the
+  lowest foot touches the ground line; only jump, happy bounce, surprise and run may lift
+  off. Never bob the whole character including the feet ("ngawang").
+- **Near ear in front.** When the head is turned (3/4 front, side) the ear nearer the camera
+  is drawn in front of the head; in back views both ears stay behind it.
+
 Before publishing, run the automated audit (`reference/audit.js`, Playwright): it steps
 every action x mood at 25 fps for 6 s in both modes and every cast x action x view, and
 reports NaN/undefined in the markup, thrown errors, per-frame pose jumps, and geometry
